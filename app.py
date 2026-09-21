@@ -12,87 +12,84 @@ st.set_page_config(
     layout="centered",
 )
 
+# 2. Tùy chỉnh CSS Responsive cho Điện thoại, iPad và Máy tính
 st.markdown(
     """
     <style>
+    /* Background tổng thể */
     .stApp {
-        background: linear-gradient(135deg, #0b1020 0%, #111827 30%, #1f1631 100%);
-        color: #f8fafc;
+        background: linear-gradient(135deg, #0f0c20 0%, #15102a 50%, #241438 100%);
+        color: #f1f1f1;
     }
+    
+    /* Tối ưu không gian hiển thị trên điện thoại */
+    @media (max-width: 768px) {
+        .main .block-container {
+            padding-left: 0.8rem !important;
+            padding-right: 0.8rem !important;
+            padding-top: 1.5rem !important;
+        }
+        .music-header {
+            font-size: 1.6rem !important;
+        }
+        .music-subtitle {
+            font-size: 0.95rem !important;
+        }
+        .date-banner {
+            font-size: 1rem !important;
+            padding: 10px !important;
+        }
+    }
+
+    /* Style Tiêu đề */
     .music-header {
         text-align: center;
-        background: linear-gradient(90deg, #f9a8d4, #c084fc, #60a5fa);
+        background: linear-gradient(45deg, #ff416c, #8a2387, #e94057);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 900;
-        font-size: 2.6rem;
-        letter-spacing: 0.04em;
-        margin-bottom: 0.2rem;
+        font-weight: 800;
+        font-size: 2.2rem;
+        margin-bottom: 5px;
     }
     .music-subtitle {
         text-align: center;
-        color: #d8b4fe;
-        font-weight: 600;
-        font-size: 1.1rem;
-        margin-bottom: 1.2rem;
+        color: #d1b3ff;
+        font-style: italic;
+        font-size: 1.05rem;
+        margin-bottom: 15px;
     }
     .date-banner {
         text-align: center;
-        background: rgba(96, 165, 250, 0.1);
-        border: 1px solid rgba(96, 165, 250, 0.4);
-        border-radius: 14px;
-        padding: 0.8rem 1rem;
-        font-size: 1.08rem;
-        color: #fef08a;
-        margin-bottom: 1.2rem;
-        box-shadow: 0 8px 24px rgba(59,130,246,0.12);
-    }
-    .block-container {
-        padding-top: 2rem;
-        padding-bottom: 3rem;
-        max-width: 1150px;
-    }
-    [data-testid="stProgressBar"] > div {
-        background: linear-gradient(90deg, #f472b6, #a78bfa, #60a5fa);
-        border-radius: 999px;
-    }
-    .stButton > button {
-        background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 45%, #f59e0b 100%) !important;
-        color: #fff !important;
-        border: none !important;
-        border-radius: 14px !important;
-        font-weight: 800 !important;
-        font-size: 0.98rem !important;
-        letter-spacing: 0.02em !important;
-        padding: 0.9rem 1.4rem !important;
-        min-height: 46px !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 10px 24px rgba(168, 85, 247, 0.38), inset 0 1px 0 rgba(255,255,255,0.25) !important;
-    }
-    .stButton > button:hover {
-        transform: translateY(-2px) scale(1.01) !important;
-        box-shadow: 0 14px 28px rgba(236, 72, 153, 0.42), inset 0 1px 0 rgba(255,255,255,0.25) !important;
-        filter: saturate(1.15) !important;
-    }
-    .stButton > button:active {
-        transform: translateY(0) scale(0.99) !important;
-    }
-    .stAlert, .stSuccess, .stInfo, .stWarning, .stError {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(209, 179, 255, 0.3);
         border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.08);
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+        padding: 12px;
+        font-size: 1.15rem;
+        color: #ffe600;
+        margin-bottom: 20px;
+        backdrop-filter: blur(5px);
     }
-    .stDataFrame {
-        border-radius: 14px;
-        overflow: hidden;
-        border: 1px solid rgba(148, 163, 184, 0.2);
+
+    /* Style nút bấm chạm dễ hơn trên điện thoại */
+    .stButton>button, .stDownloadButton>button {
+        background: linear-gradient(90deg, #8a2387, #e94057) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 10px !important;
+        font-weight: bold !important;
+        padding: 12px 20px !important;
+        font-size: 1rem !important;
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(233, 64, 87, 0.3);
+        transition: transform 0.2s;
     }
-    .stSelectbox > div > div,
-    .stTextInput > div > div,
-    .stDateInput > div > div {
-        background: rgba(15, 23, 42, 0.4);
-        border-radius: 10px;
-        border: 1px solid rgba(148, 163, 184, 0.25);
+    .stButton>button:active {
+        transform: scale(0.98);
+    }
+
+    /* Style cho các ô nhập liệu */
+    .stTextInput input, .stSelectbox div[data-baseweb="select"] {
+        border-radius: 8px !important;
     }
     </style>
     """,
@@ -115,12 +112,6 @@ DEFAULT_SLOTS = {
 }
 
 
-def normalize_name(name):
-  if not name:
-    return ""
-  return " ".join(str(name).split()).strip().casefold()
-
-
 def get_this_saturday():
   """Tự động tính ngày Thứ 7 của tuần hiện tại"""
   today = date.today()
@@ -135,7 +126,6 @@ def load_all_data():
     with open(DATA_FILE, "r", encoding="utf-8") as f:
       raw = json.load(f)
 
-    # Tự động chuyển đổi cấu trúc dữ liệu cũ nếu có
     if raw and any(k.startswith("Ca ") for k in raw.keys()):
       sat_str = get_this_saturday().isoformat()
       migrated_slots = DEFAULT_SLOTS.copy()
@@ -162,7 +152,7 @@ def get_slots_for_date(all_data, date_str):
   return all_data[date_str]
 
 
-# 2. TIÊU ĐỀ TRANG
+# 3. TIÊU ĐỀ TRANG
 st.markdown(
     '<h1 class="music-header">🎤 ĐĂNG KÝ CA HỌC THANH NHẠC</h1>',
     unsafe_allow_html=True,
@@ -172,7 +162,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# 3. TỰ ĐỘNG TÍNH & HIỂN THỊ NGÀY THỨ 7 DƯỚI TIÊU ĐỀ
+# 4. HIỂN THỊ NGÀY THỨ 7 TỰ ĐỘNG
 selected_date = get_this_saturday()
 date_str = selected_date.isoformat()
 date_formatted = selected_date.strftime("%d/%m/%Y")
@@ -196,7 +186,7 @@ st.caption(
 
 st.divider()
 
-# 4. KHI ĐÃ KÍN LỊCH HOẶC HIỂN THỊ TRẠNG THÁI CA
+# 5. KHI KÍN LỊCH HOẶC HIỂN THỊ DANH SÁCH CA
 if so_luong_da_dk == 10:
   st.balloons()
   st.success(
@@ -231,41 +221,24 @@ if so_luong_da_dk == 10:
       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   )
 else:
-  st.subheader(f"📋 Tình Trạng Ca Học Ngày {date_formatted}")
-  cols = st.columns(2)
-  for i, (ca_name, hoc_vien) in enumerate(current_slots.items()):
-    col = cols[i % 2]
+  st.subheader(f"📋 Trạng Thái Các Ca Ngày {date_formatted}")
+
+  for ca_name, hoc_vien in current_slots.items():
     if hoc_vien:
-      with col.container():
-        st.markdown(
-            f"<div style='background: rgba(239,68,68,0.10); border:1px solid rgba(248,113,113,0.45); border-radius: 12px; padding: 0.9rem 1rem; margin-bottom: 0.75rem;'>"
-            f"<div style='font-size:0.8rem; color:#fca5a5; text-transform: uppercase; letter-spacing: 0.08em;'>Đã đăng ký</div>"
-            f"<div style='font-size:1.05rem; font-weight:700; margin-top: 0.25rem;'>{ca_name}</div>"
-            f"<div style='color:#fecaca; margin-top: 0.2rem;'>👤 {hoc_vien}</div>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
+      st.error(f"🔴 **{ca_name}**: Đã đăng ký bởi **{hoc_vien}** 🎤")
     else:
-      with col.container():
-        st.markdown(
-            f"<div style='background: rgba(34,197,94,0.10); border:1px solid rgba(74,222,128,0.45); border-radius: 12px; padding: 0.9rem 1rem; margin-bottom: 0.75rem;'>"
-            f"<div style='font-size:0.8rem; color:#86efac; text-transform: uppercase; letter-spacing: 0.08em;'>Còn trống</div>"
-            f"<div style='font-size:1.05rem; font-weight:700; margin-top: 0.25rem;'>{ca_name}</div>"
-            f"<div style='color:#dcfce7; margin-top: 0.2rem;'>🎵 Chưa có người đăng ký</div>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
+      st.success(f"🟢 **{ca_name}**: Ca còn trống 🎶")
 
   st.divider()
 
-  # 5. FORM ĐĂNG KÝ CA HỌC
+  # 6. FORM ĐĂNG KÝ CA HỌC
   st.subheader("✍️ Đăng Ký Khung Giờ")
   available_slots = [
       ca for ca, hoc_vien in current_slots.items() if not hoc_vien
   ]
 
   with st.form("form_dang_ky", clear_on_submit=True):
-    ho_ten = st.text_input("Họ và tên học viên:", placeholder="Nhập họ tên đầy đủ")
+    ho_ten = st.text_input("Họ và tên học viên:")
     ca_chon = st.selectbox("Chọn khung giờ bạn muốn học:", available_slots)
     submit_btn = st.form_submit_button("🎶 Xác Nhận Đăng Ký Ca Học")
 
@@ -290,7 +263,7 @@ else:
         )
         st.rerun()
 
-# 6. XEM VÀ HỦY ĐĂNG KÝ CÁ NHÂN
+# 7. XEM VÀ HỦY ĐĂNG KÝ CÁ NHÂN
 st.divider()
 st.subheader("📜 Xem & Hủy Đăng Ký Cá Nhân")
 
@@ -326,16 +299,10 @@ if xem_lich_su or st.session_state.get("check_history"):
       if st.button("🗑️ Hủy đăng ký ca này"):
         all_data = load_all_data()
         if date_str in all_data and ca_xoa in all_data[date_str]:
-          owner_name = all_data[date_str].get(ca_xoa)
-          if normalize_name(owner_name) != normalize_name(ho_ten_history):
-            st.warning(
-                "⚠️ Chỉ có người đã nhập tên của mình mới được xóa ca của chính mình."
-            )
-          else:
-            all_data[date_str][ca_xoa] = None
-            save_all_data(all_data)
-            st.success(
-                f"✅ Đã hủy thành công **{ca_xoa}** ngày {date_formatted}!"
-            )
-            st.session_state["check_history"] = False
-            st.rerun()
+          all_data[date_str][ca_xoa] = None
+          save_all_data(all_data)
+          st.success(
+              f"✅ Đã hủy thành công **{ca_xoa}** ngày {date_formatted}!"
+          )
+          st.session_state["check_history"] = False
+          st.rerun()
