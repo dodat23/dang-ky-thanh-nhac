@@ -231,7 +231,7 @@ else:
 
   st.divider()
 
-  # 6. FORM ĐĂNG KÝ CA HỌC
+  # 6. FORM ĐĂNG KÝ CA HỌC (ĐÃ THÊM GIỚI HẠN 1 NGHƯỜI / 1 CA)
   st.subheader("✍️ Đăng Ký Khung Giờ")
   available_slots = [
       ca for ca, hoc_vien in current_slots.items() if not hoc_vien
@@ -250,7 +250,20 @@ else:
       all_data = load_all_data()
       slots_now = get_slots_for_date(all_data, date_str)
 
-      if slots_now.get(ca_chon) is not None:
+      # Kiểm tra xem tên học viên đã đăng ký ca nào trong tuần này chưa
+      already_booked = [
+          ca
+          for ca, name in slots_now.items()
+          if name and name.strip().casefold() == ho_ten_clean.casefold()
+      ]
+
+      if already_booked:
+        st.error(
+            f"❌ Học viên **{ho_ten_clean}** đã đăng ký **{already_booked[0]}**"
+            f" ngày {date_formatted} rồi!\n\n⚠️ Mỗi học viên chỉ được đăng ký"
+            " tối đa **1 ca học** mỗi tuần."
+        )
+      elif slots_now.get(ca_chon) is not None:
         st.error(
             f"❌ **{ca_chon}** đã vừa được đăng ký bởi **{slots_now[ca_chon]}**!"
         )
