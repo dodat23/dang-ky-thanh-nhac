@@ -1,5 +1,4 @@
 from datetime import date, timedelta
-import google.auth
 from google.oauth2.service_account import Credentials
 import gspread
 import pandas as pd
@@ -221,7 +220,7 @@ def get_current_week_saturday():
   return saturday
 
 
-# 4. Kết nối trực tiếp Gspread với Service Account từ st.secrets
+# 4. Kết nối trực tiếp Gspread với Service Account từ st.secrets (Đã fix lỗi private_key)
 def get_gspread_client():
   scopes = [
       "https://www.googleapis.com/auth/spreadsheets",
@@ -229,6 +228,13 @@ def get_gspread_client():
   ]
   creds_dict = dict(st.secrets["connections"]["gsheets"])
   creds_dict.pop("spreadsheet", None)
+
+  # Fix lỗi định dạng private_key trên Streamlit Cloud
+  if "private_key" in creds_dict:
+    creds_dict["private_key"] = creds_dict["private_key"].replace(
+        "\\n", "\n"
+    )
+
   creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
   return gspread.authorize(creds)
 
@@ -256,7 +262,6 @@ def update_gsheets(df):
   worksheet = spreadsheet.get_worksheet(0)
 
   worksheet.clear()
-  # Đảm bảo chuyển đổi DataFrame sang dạng danh sách các dòng kèm header
   df_to_save = df.fillna("")
   rows = [df_to_save.columns.values.tolist()] + df_to_save.values.tolist()
   worksheet.update(rows)
