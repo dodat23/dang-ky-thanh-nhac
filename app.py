@@ -1,7 +1,8 @@
 from datetime import date, timedelta
+from google.oauth2.service_account import Credentials
+import gspread
 import pandas as pd
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 
 # 1. Cấu hình trang
 st.set_page_config(
@@ -219,26 +220,66 @@ def get_current_week_saturday():
   return saturday
 
 
-# 4. Sử dụng st.connection chuẩn của Streamlit để đọc/ghi Google Sheets an toàn tuyệt đối
-conn = st.connection("gsheets", type=GSheetsConnection)
+# 4. Kết nối Gspread an toàn với trình xử lý Private Key chống lỗi MalformedError
+def get_gspread_client():
+  scopes = [
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/drive",
+  ]
+  try:
+    creds_dict = dict(st.secrets["connections"]["gsheets"])
+  except Exception:
+    creds_dict = dict(st.secrets["gsheets"])
+
+  creds_dict.pop("spreadsheet", None)
+
+  if "private_key" in creds_dict:
+    pk = creds_dict["private_key"]
+    # Thay thế cả 2 trường hợp lỗi ký tự xuống dòng phổ biến
+    pk = pk.replace("\\n", "\n")
+    creds_dict["private_key"] = pk
+
+  creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+  return gspread.authorize(creds)
+
+
+def get_spreadsheet_url():
+  try:
+    return st.secrets["connections"]["gsheets"]["spreadsheet"]
+  except Exception:
+    return st.secrets["gsheets"]["spreadsheet"]
 
 
 @st.cache_data(ttl=5)
 def load_data():
   try:
-    df = conn.read(ttl=5)
-    if df is None or df.empty or "ngay" not in df.columns:
+    client = get_gspread_client()
+    spreadsheet = client.open_by_url(get_spreadsheet_url())
+    worksheet = spreadsheet.get_worksheet(0)
+    data = worksheet.get_all_records()
+    df = pd.DataFrame(data)
+    if df.empty or "ngay" not in df.columns:
       return pd.DataFrame(columns=["ngay", "ca", "hoc_vien"])
     return df
   except Exception:
     return pd.DataFrame(columns=["ngay", "ca", "hoc_vien"])
 
 
+def update_gsheets(df):
+  client = get_gspread_client()
+  spreadsheet = client.open_by_url(get_spreadsheet_url())
+  worksheet = spreadsheet.get_worksheet(0)
+  worksheet.clear()
+  df_to_save = df.fillna("")
+  rows = [df_to_save.columns.values.tolist()] + df_to_save.values.tolist()
+  worksheet.update(rows)
+
+
 def save_booking(date_str, ca, name):
   df = load_data()
   new_row = pd.DataFrame([{"ngay": date_str, "ca": ca, "hoc_vien": name}])
   df = pd.concat([df, new_row], ignore_index=True)
-  conn.update(data=df)
+  update_gsheets(df)
   st.cache_data.clear()
 
 
@@ -251,7 +292,7 @@ def delete_booking(date_str, ca, name):
           & (df["hoc_vien"].astype(str).str.casefold() == str(name).casefold())
       )
   ].reset_index(drop=True)
-  conn.update(data=df)
+  update_gsheets(df)
   st.cache_data.clear()
 
 
