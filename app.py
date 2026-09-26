@@ -1,7 +1,9 @@
 from datetime import date, timedelta
+import google.auth
+from google.oauth2.service_account import Credentials
+import gspread
 import pandas as pd
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 
 # 1. Cấu hình trang
 st.set_page_config(
@@ -219,15 +221,28 @@ def get_current_week_saturday():
   return saturday
 
 
-# 4. Kết nối Google Sheets & Quản lý Cache
-conn = st.connection("gsheets", type=GSheetsConnection)
+# 4. Kết nối trực tiếp Gspread với Service Account từ st.secrets
+def get_gspread_client():
+  scopes = [
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/drive",
+  ]
+  creds_dict = dict(st.secrets["connections"]["gsheets"])
+  creds_dict.pop("spreadsheet", None)
+  creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+  return gspread.authorize(creds)
 
 
 @st.cache_data(ttl=10)
 def load_data():
   try:
-    df = conn.read(ttl=10)
-    if df is None:
+    client = get_gspread_client()
+    spreadsheet_url = st.secrets["connections"]["gsheets"]["spreadsheet"]
+    spreadsheet = client.open_by_url(spreadsheet_url)
+    worksheet = spreadsheet.get_worksheet(0)
+    data = worksheet.get_all_records()
+    df = pd.DataFrame(data)
+    if df.empty or "ngay" not in df.columns:
       return pd.DataFrame(columns=["ngay", "ca", "hoc_vien"])
     return df
   except Exception:
@@ -235,19 +250,16 @@ def load_data():
 
 
 def update_gsheets(df):
-  """Hàm phụ trợ ghi đè DataFrame lên Google Sheets thông qua gspread client"""
-  try:
-    client = conn.client
-    spreadsheet_url = st.secrets["connections"]["gsheets"]["spreadsheet"]
-    spreadsheet = client.open_by_url(spreadsheet_url)
-    worksheet = spreadsheet.get_worksheet(0)
+  client = get_gspread_client()
+  spreadsheet_url = st.secrets["connections"]["gsheets"]["spreadsheet"]
+  spreadsheet = client.open_by_url(spreadsheet_url)
+  worksheet = spreadsheet.get_worksheet(0)
 
-    worksheet.clear()
-    worksheet.update(
-        [df.columns.values.tolist()] + df.values.tolist()
-    )
-  except Exception as e:
-    conn.update(data=df)
+  worksheet.clear()
+  # Đảm bảo chuyển đổi DataFrame sang dạng danh sách các dòng kèm header
+  df_to_save = df.fillna("")
+  rows = [df_to_save.columns.values.tolist()] + df_to_save.values.tolist()
+  worksheet.update(rows)
 
 
 def save_booking(date_str, ca, name):
