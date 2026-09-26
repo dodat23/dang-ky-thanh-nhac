@@ -234,17 +234,32 @@ def load_data():
     return pd.DataFrame(columns=["ngay", "ca", "hoc_vien"])
 
 
+def update_gsheets(df):
+  """Hàm phụ trợ ghi đè DataFrame lên Google Sheets thông qua gspread client"""
+  try:
+    client = conn.client
+    spreadsheet_url = st.secrets["connections"]["gsheets"]["spreadsheet"]
+    spreadsheet = client.open_by_url(spreadsheet_url)
+    worksheet = spreadsheet.get_worksheet(0)
+
+    worksheet.clear()
+    worksheet.update(
+        [df.columns.values.tolist()] + df.values.tolist()
+    )
+  except Exception as e:
+    conn.update(data=df)
+
+
 def save_booking(date_str, ca, name):
   df = load_data()
   new_row = pd.DataFrame([{"ngay": date_str, "ca": ca, "hoc_vien": name}])
   df = pd.concat([df, new_row], ignore_index=True)
-  conn.update(data=df)
+  update_gsheets(df)
   st.cache_data.clear()
 
 
 def delete_booking(date_str, ca, name):
   df = load_data()
-  # Lọc bỏ dòng cần xóa và reset lại index hoàn toàn
   df = df[
       ~(
           (df["ngay"].astype(str) == str(date_str))
@@ -252,7 +267,7 @@ def delete_booking(date_str, ca, name):
           & (df["hoc_vien"].astype(str).str.casefold() == str(name).casefold())
       )
   ].reset_index(drop=True)
-  conn.update(data=df)
+  update_gsheets(df)
   st.cache_data.clear()
 
 
