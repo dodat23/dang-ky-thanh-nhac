@@ -240,7 +240,7 @@ def save_booking(date_str, ca, name):
   new_row = pd.DataFrame([{"ngay": date_str, "ca": ca, "hoc_vien": name}])
   df = pd.concat([df, new_row], ignore_index=True)
   conn.update(data=df)
-  st.cache_data.clear()  # Xóa cache để làm mới dữ liệu tức thì
+  st.cache_data.clear()
 
 
 def delete_booking(date_str, ca, name):
@@ -253,7 +253,7 @@ def delete_booking(date_str, ca, name):
       )
   ]
   conn.update(data=df)
-  st.cache_data.clear()  # Xóa cache để làm mới dữ liệu tức thì
+  st.cache_data.clear()
 
 
 # 5. Hàm hiển thị Cửa sổ Thông báo Pop-up Modal (st.dialog)
@@ -431,7 +431,11 @@ else:
     available_cas.append(f"{CA_2} (Còn {MAX_GUEST_PER_CA - len(list_ca2)} chỗ)")
 
   with st.form("form_dang_ky", clear_on_submit=True):
-    ho_ten = st.text_input("Họ và tên học viên:", placeholder="Nhập tên của bạn...")
+    ho_ten = st.text_input(
+        "Họ và tên học viên:",
+        placeholder="Nhập tên của bạn...",
+        autocomplete="off",
+    )
     ca_chon_raw = st.selectbox("Chọn ca học mong muốn:", available_cas)
     submit_btn = st.form_submit_button("🎶 XÁC NHẬN ĐĂNG KÝ")
 
@@ -479,7 +483,9 @@ st.markdown("### 🔍 Kiểm Tra & Hủy Lịch Đã Đăng Ký")
 
 with st.form("form_lich_su", clear_on_submit=True):
   ho_ten_history = st.text_input(
-      "Nhập họ và tên để kiểm tra:", placeholder="Tên học viên cần tìm..."
+      "Nhập họ và tên để kiểm tra:",
+      placeholder="Tên học viên cần tìm...",
+      autocomplete="off",
   )
   xem_lich_su = st.form_submit_button("🔎 Tra Cứu Lịch")
 
