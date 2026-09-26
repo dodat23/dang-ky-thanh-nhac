@@ -535,4 +535,4 @@ if searched_name:
               ),
               "icon": "✅",
           }
-          st.rerun()
+          st.rerun()s
