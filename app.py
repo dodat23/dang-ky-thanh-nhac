@@ -1,3 +1,4 @@
+import json
 from datetime import date, timedelta
 from google.oauth2.service_account import Credentials
 import gspread
@@ -220,25 +221,65 @@ def get_current_week_saturday():
   return saturday
 
 
+def get_user_bookings(slots, name):
+  return [
+      slot for slot, assigned in slots.items()
+      if assigned is not None and str(assigned).casefold() == str(name).casefold()
+  ]
+
+
+def remove_booking(slots, name, slot_to_remove):
+  updated = dict(slots)
+  if str(updated.get(slot_to_remove, "")).casefold() == str(name).casefold():
+    updated[slot_to_remove] = None
+  return updated
+
+
+def normalize_service_account_info(info):
+  if not isinstance(info, dict):
+    raise TypeError("Google Sheets secret must be a dictionary or JSON string.")
+
+  cleaned = dict(info)
+  cleaned.pop("spreadsheet", None)
+
+  if "private_key" in cleaned and isinstance(cleaned["private_key"], str):
+    pk = cleaned["private_key"].replace("\\n", "\n").replace("\\r", "\r")
+    pk = pk.strip()
+    if not pk.endswith("\n") and "END PRIVATE KEY" in pk:
+      pk += "\n"
+    cleaned["private_key"] = pk
+
+  return cleaned
+
+
+def get_service_account_config():
+  for secret_source in (
+      st.secrets.get("connections", {}).get("gsheets"),
+      st.secrets.get("gsheets"),
+  ):
+    if secret_source is None:
+      continue
+
+    if isinstance(secret_source, str):
+      try:
+        secret_source = json.loads(secret_source)
+      except json.JSONDecodeError:
+        raise ValueError("Google Sheets secret is not valid JSON.")
+
+    if isinstance(secret_source, dict):
+      return normalize_service_account_info(secret_source)
+
+  raise KeyError("Missing Google Sheets connection secret.")
+
+
 # 4. Kết nối Gspread an toàn với trình xử lý Private Key chống lỗi MalformedError
 def get_gspread_client():
   scopes = [
       "https://www.googleapis.com/auth/spreadsheets",
       "https://www.googleapis.com/auth/drive",
   ]
-  try:
-    creds_dict = dict(st.secrets["connections"]["gsheets"])
-  except Exception:
-    creds_dict = dict(st.secrets["gsheets"])
 
-  creds_dict.pop("spreadsheet", None)
-
-  if "private_key" in creds_dict:
-    pk = creds_dict["private_key"]
-    # Thay thế cả 2 trường hợp lỗi ký tự xuống dòng phổ biến
-    pk = pk.replace("\\n", "\n")
-    creds_dict["private_key"] = pk
-
+  creds_dict = get_service_account_config()
   creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
   return gspread.authorize(creds)
 
