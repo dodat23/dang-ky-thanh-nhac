@@ -11,7 +11,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# 2. Tùy chỉnh CSS Giao diện Tone Sáng & Animation Mượt Mà
+# 2. Tùy chỉnh CSS Giao diện Tone Sáng, Animation & Tắt autocomplete
 st.markdown(
     """
     <style>
@@ -71,7 +71,6 @@ st.markdown(
         background: #FFFFFF !important;
     }
 
-    /* Làm mờ nền xung quanh khi hiện Pop-up Box */
     div[data-testid="stDialog"] > div:first-child,
     div[role="dialog"] > div:first-child {
         backdrop-filter: blur(8px) !important;
@@ -215,7 +214,6 @@ MAX_GUEST_PER_CA = 5
 
 
 def get_current_week_saturday():
-  """Khóa tuần từ Thứ 2 đến Chủ Nhật: Tự động tính Thứ 7 tuần hiện tại"""
   today = date.today()
   saturday = today + timedelta(days=(5 - today.weekday()))
   return saturday
@@ -227,9 +225,10 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 
 @st.cache_data(ttl=10)
 def load_data():
-  """Lưu bộ nhớ đệm 10 giây để tránh tràn Quota API"""
   try:
     df = conn.read(ttl=10)
+    if df is None:
+      return pd.DataFrame(columns=["ngay", "ca", "hoc_vien"])
     return df
   except Exception:
     return pd.DataFrame(columns=["ngay", "ca", "hoc_vien"])
@@ -245,13 +244,14 @@ def save_booking(date_str, ca, name):
 
 def delete_booking(date_str, ca, name):
   df = load_data()
+  # Lọc bỏ dòng cần xóa và reset lại index hoàn toàn
   df = df[
       ~(
-          (df["ngay"] == date_str)
-          & (df["ca"] == ca)
-          & (df["hoc_vien"].str.casefold() == name.casefold())
+          (df["ngay"].astype(str) == str(date_str))
+          & (df["ca"].astype(str) == str(ca))
+          & (df["hoc_vien"].astype(str).str.casefold() == str(name).casefold())
       )
-  ]
+  ].reset_index(drop=True)
   conn.update(data=df)
   st.cache_data.clear()
 
@@ -280,7 +280,6 @@ def show_popup_dialog(title, message, icon="✨"):
     st.rerun()
 
 
-# Kiểm tra xem có Pop-up nào cần bật không
 if (
     "popup_trigger" in st.session_state
     and st.session_state["popup_trigger"] is not None
@@ -316,19 +315,19 @@ st.markdown(
 # 7. Đọc dữ liệu từ Google Sheets
 df_all = load_data()
 df_today = (
-    df_all[df_all["ngay"] == date_str]
-    if not df_all.empty
+    df_all[df_all["ngay"].astype(str) == str(date_str)]
+    if not df_all.empty and "ngay" in df_all.columns
     else pd.DataFrame(columns=["ngay", "ca", "hoc_vien"])
 )
 
 list_ca1 = (
     df_today[df_today["ca"] == CA_1]["hoc_vien"].tolist()
-    if not df_today.empty
+    if not df_today.empty and "ca" in df_today.columns
     else []
 )
 list_ca2 = (
     df_today[df_today["ca"] == CA_2]["hoc_vien"].tolist()
-    if not df_today.empty
+    if not df_today.empty and "ca" in df_today.columns
     else []
 )
 
@@ -525,7 +524,7 @@ if searched_name:
       with col_info:
         st.write(f"📌 **{row['ca']}**")
       with col_del:
-        if st.button("🗑️ Hủy ca", key=f"del_{row['ca']}"):
+        if st.button("🗑️ Hủy ca", key=f"del_{row['ca']}_{row['hoc_vien']}"):
           delete_booking(date_str, row["ca"], row["hoc_vien"])
           st.session_state["searched_name"] = ""
           st.session_state["popup_trigger"] = {
