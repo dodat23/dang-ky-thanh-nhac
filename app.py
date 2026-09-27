@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import os
+import pandas as pd
 from datetime import datetime, timedelta
 
 # Cấu hình trang Streamlit
@@ -10,16 +11,13 @@ st.set_page_config(
     layout="centered"
 )
 
-# CSS tùy chỉnh giao diện Hồng - Trắng tinh tế, hiện đại
+# CSS tùy chỉnh giao diện Hồng - Trắng tinh tế, thanh lịch
 st.markdown("""
     <style>
-    /* Toàn bộ nền trang (Hồng nhạt pastel dịu mắt) */
     .stApp {
         background-color: #fff5f7;
         color: #1f2937;
     }
-    
-    /* Tùy chỉnh ô nhập liệu và selectbox */
     .stTextInput > div > div > input {
         background-color: #ffffff;
         color: #1f2937;
@@ -32,8 +30,6 @@ st.markdown("""
         border: 1px solid #f472b6;
         border-radius: 10px;
     }
-    
-    /* Nút bấm chính (Hồng đậm gradient nổi bật) */
     div.stButton > button {
         border-radius: 10px;
         font-weight: bold;
@@ -49,8 +45,6 @@ st.markdown("""
         background: linear-gradient(135deg, #db2777 0%, #e11d48 100%);
         box-shadow: 0 6px 16px rgba(236, 72, 153, 0.5);
     }
-
-    /* Thẻ Card hiển thị thông tin ca học (Màu trắng bo viền hồng nhẹ) */
     .card {
         padding: 22px;
         border-radius: 16px;
@@ -59,14 +53,10 @@ st.markdown("""
         box-shadow: 0 10px 15px -3px rgba(244, 114, 182, 0.15);
         margin-bottom: 20px;
     }
-    
-    /* Tiêu đề trong card */
     .card h4 {
         color: #db2777;
         margin-bottom: 8px;
     }
-
-    /* Thanh thông báo info */
     .stAlert {
         background-color: #ffffff;
         color: #1f2937;
@@ -129,6 +119,10 @@ tong_so_hoc_vien = sum(len(ds) for ds in data["dang_ky"].values())
 st.markdown(f"🎤 **Tổng số học viên đã đăng ký tuần này:** `{tong_so_hoc_vien}/10 chỗ`")
 st.progress(tong_so_hoc_vien / 10)
 
+# THÔNG BÁO KHI ĐÃ ĐỦ 10 HỌC VIÊN
+if tong_so_hoc_vien == 10:
+    st.success("🎉 **Lớp học đã đủ 10/10 học viên đăng ký!** Dưới đây là bảng tổng kết chi tiết ca học.")
+
 st.write("")
 
 # Hiển thị 2 ca học dưới dạng 2 cột thẻ card trắng viền hồng
@@ -164,6 +158,39 @@ with col2:
             st.write(f"{idx}. {hv}")
     st.markdown("</div>", unsafe_allow_html=True)
 
+# ================= PHẦN HIỂN THỊ DẠNG SHEET (BẢNG TỔNG KẾT) =================
+st.divider()
+st.subheader("📊 Bảng Sheet Tổng Hợp Danh Sách Học Viên")
+st.markdown("Bảng dữ liệu dưới đây tự động cập nhật trực tiếp theo thời gian thực khi các học viên đăng ký:")
+
+# Chuẩn bị dữ liệu để đưa vào bảng dạng Sheet (DataFrame)
+danh_sach_sheet = []
+for ca, ds_hv in data["dang_ky"].items():
+    for i, hv in enumerate(ds_hv, 1):
+        danh_sach_sheet.append({
+            "STT": len(danh_sach_sheet) + 1,
+            "Họ và Tên": hv,
+            "Ca Học": ca,
+            "Ngày Học": ngay_thu_7,
+            "Trạng Thái": "Đã xác nhận"
+        })
+
+if danh_sach_sheet:
+    df_sheet = pd.DataFrame(danh_sach_sheet)
+    # Hiển thị bảng dạng interactive sheet chuyên nghiệp
+    st.dataframe(df_sheet, use_container_width=True, hide_index=True)
+    
+    # Nút hỗ trợ xuất file Excel/CSV nếu cần lưu trữ
+    csv_data = df_sheet.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Tải xuống bảng danh sách (File CSV/Excel)",
+        data=csv_data,
+        file_name=f"Danh_sach_thanh_nhac_ngay_{ngay_thu_7.replace('/', '_')}.csv",
+        mime="text/csv"
+    )
+else:
+    st.info("Chưa có dữ liệu học viên trong bảng sheet tuần này.")
+
 st.divider()
 
 # Form đăng ký
@@ -194,7 +221,7 @@ with st.container():
                 st.warning(f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi người chỉ được chọn 1 ca.")
             else:
                 if len(data["dang_ky"][ca_chon]) >= 5:
-                    st.error(f"Ca **{ca_chon}** đã đủ 5/5 học viên. Vui lòng chọn ca còn lại!")
+                    st.error(f"Ca **{ca_chon}** đã đủ 5/5 học viên. Vuint lòng chọn ca còn lại!")
                 else:
                     data["dang_ky"][ca_chon].append(ten_chuan_hoa)
                     luu_du_lieu(data)
