@@ -11,7 +11,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# CSS giao diện phong cách Âm Nhạc, Responsive & Modal hoàn chỉnh có nút đóng bên trong
+# CSS giao diện phong cách Âm Nhạc chuyên nghiệp, sống động & Responsive
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -22,6 +22,7 @@ st.markdown("""
         color: #1f2937;
     }
 
+    /* Hiệu ứng nốt nhạc bay lơ lửng trang trí tiêu đề */
     @keyframes floatNotes {
         0% { transform: translateY(0px) rotate(0deg); }
         50% { transform: translateY(-6px) rotate(5deg); }
@@ -33,7 +34,7 @@ st.markdown("""
         animation: floatNotes 4s ease-in-out infinite;
     }
 
-    /* Tối ưu Input gọn gàng tuyệt đối */
+    /* Tối ưu Input */
     .stTextInput > div > div > input {
         background-color: #ffffff;
         color: #1f2937;
@@ -72,7 +73,7 @@ st.markdown("""
         transform: translateY(1px);
     }
 
-    /* Thẻ Card Ca học */
+    /* Thẻ Card Ca học phong cách khuông nhạc */
     .card {
         padding: 24px;
         border-radius: 22px;
@@ -94,62 +95,29 @@ st.markdown("""
         font-weight: 800;
     }
 
-    /* Modal trung tâm màn hình */
-    @keyframes modalShow {
-        from {
-            opacity: 0;
-            transform: translate(-50%, -40%) scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-        }
+    /* Khung thông báo */
+    .stAlert {
+        background-color: rgba(255, 255, 255, 0.95);
+        color: #1f2937;
+        border: 1.5px solid #fbcfe8;
+        border-radius: 16px;
+        box-shadow: 0 6px 15px rgba(244, 114, 182, 0.1);
     }
 
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.45);
-        backdrop-filter: blur(5px);
-        z-index: 9998;
-    }
-
-    .custom-modal-box {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 90%;
-        max-width: 440px;
-        background: #ffffff;
-        padding: 30px;
-        border-radius: 24px;
-        box-shadow: 0 25px 50px -12px rgba(190, 24, 93, 0.35);
-        border: 2px solid #fbcfe8;
-        z-index: 9999;
-        animation: modalShow 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        text-align: center;
-    }
-
-    .custom-modal-box h3 {
-        color: #be185d;
-        margin-bottom: 12px;
-        font-weight: 800;
-    }
-
-    .custom-modal-box p {
-        color: #4b5563;
-        font-size: 16px;
-        line-height: 1.5;
-        margin-bottom: 24px;
-    }
-
+    /* Thanh tiến trình âm nhạc */
     .stProgress > div > div > div > div {
         background: linear-gradient(90deg, #f472b6 0%, #be185d 100%);
         border-radius: 12px;
+    }
+
+    /* Responsive tối ưu trên mọi màn hình */
+    @media screen and (max-width: 768px) {
+        h1 {
+            font-size: 1.6rem !important;
+        }
+        .card {
+            padding: 18px;
+        }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -192,33 +160,28 @@ def luu_du_lieu(data):
 data = tai_du_lieu()
 ngay_thu_7 = data["ngay_thu_7"]
 
-if 'modal_message' not in st.session_state:
-    st.session_state['modal_message'] = None
-
-def show_modal(title, message):
-    st.session_state['modal_message'] = {"title": title, "text": message}
-
-# Tiêu đề
+# Tiêu đề mang âm hưởng âm nhạc
 st.markdown("""
     <div class="music-header">
         <h1 style='color: #be185d; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0;'>
-            🎶 Đăng ký ca học thanh nhạc 🎤
+            🎶 PHÒNG TRÀ & LUYỆN THANH NHẠC 🎤
         </h1>
         <p style='color: #6b7280; font-size: 17px; margin-top: 5px;'>
-            🎵 <i>Luyện thanh thăng hoa cùng Ms Gemma</i> 🎵
+            🎵 <i>Thắp sáng đam mê - Chạm đến âm sắc hoàn hảo cùng Ms Gemma</i> 🎵
         </p>
     </div>
 """, unsafe_allow_html=True)
 
 st.info(f"📅 **Lịch hòa ca Thứ 7 tuần này:** `{ngay_thu_7}` (Thời gian: **8:00 - 11:30**)")
 
+# Thống kê sĩ số tổng quan
 tong_so_hoc_vien = sum(len(ds) for ds in data["dang_ky"].values())
 st.markdown(f"🎧 **Tổng số giọng ca đã đăng ký tuần này:** `{tong_so_hoc_vien}/10 chỗ`")
 st.progress(tong_so_hoc_vien / 10)
 
 st.write("")
 
-# Hiển thị 2 ca học
+# Hiển thị 2 ca học (Responsive)
 col1, col2 = st.columns(2)
 
 with col1:
@@ -262,19 +225,19 @@ if tong_so_hoc_vien < 10:
             st.session_state['ten_input'] = ""
             st.session_state['clear_input'] = False
 
-        # Đã loại bỏ hoàn toàn chữ gợi ý (placeholder) và nhãn
-        ten_hoc_vien = st.text_input("Nhập tên", key="ten_input", label_visibility="collapsed")
+        ten_hoc_vien = st.text_input("Họ và tên học viên:", placeholder="Nhập nghệ danh hoặc tên của bạn...", key="ten_input")
         
         if len(data["dang_ky"]["Ca 1 (8:00 - 9:45)"]) < 5:
             ca_tu_dong = "Ca 1 (8:00 - 9:45)"
+            st.info("💡 Hệ thống tự động xếp bạn vào **Ca 1 (8:00 - 9:45)**.")
         else:
             ca_tu_dong = "Ca 2 (9:45 - 11:30)"
+            st.info("💡 Ca 1 đã đủ 5 giọng ca. Hệ thống tự động xếp bạn vào **Ca 2 (9:45 - 11:30)**.")
 
-        if st.button("🎶 Xác Nhận Đăng Ký Ca Học"):
+        if st.button("🎶 Xác Nhận Đăng Ký Lịch Ca Sĩ"):
             ten_chuan_hoa = ten_hoc_vien.strip()
             if not ten_chuan_hoa:
-                show_modal("⚠️ Thông Báo Lỗi", "Vui lòng nhập họ và tên của bạn trước khi đăng ký!")
-                st.rerun()
+                st.error("Vui lòng nhập tên của bạn!")
             else:
                 da_dang_ky = False
                 ca_cu = ""
@@ -285,20 +248,18 @@ if tong_so_hoc_vien < 10:
                         break
                 
                 if da_dang_ky:
-                    show_modal("⚠️ Trùng Lịch Đăng Ký", f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi giọng ca chỉ được chọn 1 ca duy nhất.")
-                    st.rerun()
+                    st.warning(f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi người chỉ được chọn 1 ca.")
                 else:
                     if len(data["dang_ky"][ca_tu_dong]) >= 5:
-                        show_modal("❌ Hết Chỗ Ca Học", f"Ca **{ca_tu_dong}** đã đủ 5/5 giọng ca!")
-                        st.rerun()
+                        st.error(f"Ca **{ca_tu_dong}** đã đủ 5/5 giọng ca!")
                     else:
                         data["dang_ky"][ca_tu_dong].append(ten_chuan_hoa)
                         luu_du_lieu(data)
                         st.session_state['clear_input'] = True
-                        show_modal("🎉 Đăng Ký Thành Công!", f"Chúc mừng giọng ca **{ten_chuan_hoa}** đã ghi danh thành công vào **{ca_tu_dong}**!")
+                        st.success(f"🎉 Chúc mừng **{ten_chuan_hoa}** đã đăng ký thành công vào **{ca_tu_dong}**!")
                         st.rerun()
 else:
-    show_modal("🎉 Hoàn Tất Đăng Ký", "Lớp học đã hoàn tất đăng ký đủ 10/10 giọng ca! Sân khấu đã sẵn sàng.")
+    st.success("🎉 **Lớp học đã hoàn tất đăng ký đủ 10/10 giọng ca!** Sân khấu đã sẵn sàng tỏa sáng.")
 
 
 # ================= PHẦN KIỂM TRA & HỦY LỊCH CÁ NHÂN =================
@@ -309,8 +270,7 @@ with st.container():
         st.session_state['input_check'] = ""
         st.session_state['clear_check'] = False
 
-    # Đã loại bỏ hoàn toàn chữ gợi ý (placeholder) và nhãn
-    ten_kiem_tra = st.text_input("Tra cứu", key="input_check", label_visibility="collapsed")
+    ten_kiem_tra = st.text_input("Nhập tên để tìm lịch diễn:", placeholder="Tên học viên cần tìm...", key="input_check")
     
     if st.button("🎵 Tra Cứu Lịch Biểu"):
         st.session_state['search_name'] = ten_kiem_tra.strip()
@@ -321,40 +281,19 @@ if 'search_name' in st.session_state and st.session_state['search_name']:
     for ca, ds in data["dang_ky"].items():
         if name_to_find in ds:
             tim_thay = True
-            show_modal("🔎 Tìm Thấy Lịch Diễn", f"Giọng ca **{name_to_find}** hiện đang luyện tập ở **{ca}**.")
+            st.info(f"Giọng ca **{name_to_find}** hiện đang luyện tập ở **{ca}**.")
             
             if st.button(f"❌ Xác nhận HỦY lịch của {name_to_find}", key="btn_huy_lich_action"):
                 data["dang_ky"][ca].remove(name_to_find)
                 luu_du_lieu(data)
                 del st.session_state['search_name']
                 st.session_state['clear_check'] = True
-                show_modal("🗑️ Đã Hủy Lịch", f"Đã hủy lịch thành công cho giọng ca **{name_to_find}**!")
+                st.success("Đã hủy lịch thành công! Bạn có thể chọn lại lịch mới.")
                 st.rerun()
             break
             
     if not tim_thay:
-        show_modal("⚠️ Không Tìm Thấy", f"Không tìm thấy dữ liệu đăng ký cho tên **{name_to_find}** trong tuần này.")
-
-
-# ================= HIỂN THỊ MODAL TRUNG TÂM KÈM NÚT QUAY LẠI CHUẨN XÁC =================
-if st.session_state['modal_message']:
-    m_data = st.session_state['modal_message']
-    
-    # Hiển thị lớp phủ và hộp thoại modal nổi ở giữa
-    st.markdown(f"""
-        <div class="modal-overlay"></div>
-        <div class="custom-modal-box">
-            <h3>{m_data['title']}</h3>
-            <p>{m_data['text']}</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    # Đặt nút bấm quay lại ngay bên dưới để Streamlit render đè lên khung modal ở giữa màn hình
-    st.markdown("<div style='position: fixed; top: 56%; left: 50%; transform: translate(-50%, 0); z-index: 10000; width: 80%; max-width: 320px;'>", unsafe_allow_html=True)
-    if st.button("⬅️ Quay lại màn hình chính", key="btn_dong_modal_chinh"):
-        st.session_state['modal_message'] = None
-        st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+        st.warning(f"Không tìm thấy dữ liệu đăng ký cho tên **{name_to_find}** trong tuần này.")
 
 
 # ================= CHỈ HIỆN SHEET KHI ĐỦ 10/10 HỌC VIÊN =================
