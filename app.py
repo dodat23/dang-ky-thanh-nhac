@@ -11,7 +11,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# CSS nâng cấp giao diện chuyên nghiệp, hiệu ứng chuyển động mượt mà
+# CSS nâng cấp chuyên nghiệp, mượt mà & Responsive cho mọi thiết bị
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
@@ -22,7 +22,7 @@ st.markdown("""
         color: #1f2937;
     }
 
-    /* Hiệu ứng mượt mà cho các Input và Selectbox */
+    /* Tối ưu Input cho mobile & desktop */
     .stTextInput > div > div > input {
         background-color: #ffffff;
         color: #1f2937;
@@ -31,13 +31,14 @@ st.markdown("""
         padding: 10px 14px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 2px 4px rgba(244, 114, 182, 0.05);
+        font-size: 16px; /* Tránh tự zoom trên iOS */
     }
     .stTextInput > div > div > input:focus {
         border-color: #ec4899;
         box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.15);
     }
 
-    /* Hiệu ứng nút bấm chuyên nghiệp, bóng đổ và chuyển động trượt */
+    /* Nút bấm hiệu ứng nổi, mượt mà */
     div.stButton > button {
         border-radius: 12px;
         font-weight: 600;
@@ -49,6 +50,7 @@ st.markdown("""
         box-shadow: 0 6px 15px rgba(236, 72, 153, 0.35);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         letter-spacing: 0.3px;
+        cursor: pointer;
     }
     div.stButton > button:hover {
         transform: translateY(-2px);
@@ -59,19 +61,19 @@ st.markdown("""
         transform: translateY(1px);
     }
 
-    /* Thẻ Card Ca học với hiệu ứng nổi và hover phóng to nhẹ mượt mà */
+    /* Thẻ Card Ca học */
     .card {
-        padding: 24px;
+        padding: 20px;
         border-radius: 20px;
         background: rgba(255, 255, 255, 0.85);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(251, 207, 232, 0.8);
         box-shadow: 0 10px 25px -5px rgba(244, 114, 182, 0.12), 0 8px 10px -6px rgba(244, 114, 182, 0.08);
-        margin-bottom: 20px;
+        margin-bottom: 16px;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-4px);
         box-shadow: 0 15px 30px -5px rgba(244, 114, 182, 0.22);
         border-color: #f472b6;
     }
@@ -81,7 +83,7 @@ st.markdown("""
         font-weight: 700;
     }
 
-    /* Khung thông báo và alert tinh tế */
+    /* Khung thông báo */
     .stAlert {
         background-color: rgba(255, 255, 255, 0.9);
         color: #1f2937;
@@ -90,10 +92,22 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(244, 114, 182, 0.08);
     }
 
-    /* Tùy chỉnh thanh tiến trình (progress bar) */
+    /* Thanh tiến trình mượt mà */
     .stProgress > div > div > div > div {
         background: linear-gradient(90deg, #f472b6 0%, #db2777 100%);
         border-radius: 10px;
+    }
+
+    /* Responsive cho thiết bị di động (Mobile screens < 768px) */
+    @media screen and (max-width: 768px) {
+        h1 {
+            font-size: 1.75rem !important;
+        }
+        .card {
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        /* Ép các cột hiển thị gọn gàng trên mobile nếu cần */
     }
     </style>
 """, unsafe_allow_html=True)
@@ -136,7 +150,7 @@ def luu_du_lieu(data):
 data = tai_du_lieu()
 ngay_thu_7 = data["ngay_thu_7"]
 
-# Tiêu đề trang đẳng cấp hơn
+# Tiêu đề trang
 st.markdown("<h1 style='text-align: center; color: #db2777; font-weight: 800; letter-spacing: -0.5px;'>🎶 HỆ THỐNG ĐĂNG KÝ THANH NHẠC</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; color: #6b7280; font-size: 16px; margin-bottom: 25px;'>✨ Luyện giọng thăng hoa cùng Ms Gemma ✨</p>", unsafe_allow_html=True)
 
@@ -149,7 +163,7 @@ st.progress(tong_so_hoc_vien / 10)
 
 st.write("")
 
-# Hiển thị 2 ca học dưới dạng 2 cột thẻ card hiệu ứng mượt mà
+# Hiển thị 2 ca học (Tự động responsive trên điện thoại và máy tính)
 col1, col2 = st.columns(2)
 
 with col1:
