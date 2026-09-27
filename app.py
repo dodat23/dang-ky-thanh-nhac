@@ -290,7 +290,7 @@ if tong_so_hoc_vien == 10:
         df_ca1 = pd.DataFrame({
             "STT": range(1, len(ds_ca1) + 1),
             "Họ và Tên": ds_ca1,
-            "Trạng thái": ["Sẵn sàng 🎤"] * len(ds_ca1)
+            "Trạng thái": ["Đã xác nhận🎤"] * len(ds_ca1)
         })
         st.dataframe(df_ca1, use_container_width=True, hide_index=True)
 
@@ -300,7 +300,7 @@ if tong_so_hoc_vien == 10:
         df_ca2 = pd.DataFrame({
             "STT": range(1, len(ds_ca2) + 1),
             "Họ và Tên": ds_ca2,
-            "Trạng thái": ["Sẵn sàng 🎶"] * len(ds_ca2)
+            "Trạng thái": ["Đã xác nhận🎶"] * len(ds_ca2)
         })
         st.dataframe(df_ca2, use_container_width=True, hide_index=True)
 
