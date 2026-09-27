@@ -10,35 +10,68 @@ st.set_page_config(
     layout="centered"
 )
 
-# CSS tùy chỉnh giao diện chuyên nghiệp, hiện đại
+# CSS tùy chỉnh giao diện tối chuyên nghiệp, phong cách Studio âm nhạc
 st.markdown("""
     <style>
-    .main {
-        background-color: #f8f9fa;
+    /* Toàn bộ nền trang */
+    .stApp {
+        background-color: #0f172a;
+        color: #f8fafc;
     }
+    
+    /* Tùy chỉnh ô nhập liệu và selectbox */
     .stTextInput > div > div > input {
-        border-radius: 8px;
+        background-color: #1e293b;
+        color: #f8fafc;
+        border: 1px solid #334155;
+        border-radius: 10px;
     }
     .stSelectbox > div > div > div {
-        border-radius: 8px;
+        background-color: #1e293b;
+        color: #f8fafc;
+        border: 1px solid #334155;
+        border-radius: 10px;
     }
+    
+    /* Nút bấm chính */
     div.stButton > button {
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: bold;
-        background-color: #7c3aed;
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
         color: white;
+        border: none;
         width: 100%;
+        padding: 10px;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        transition: all 0.3s ease;
     }
     div.stButton > button:hover {
-        background-color: #6d28d9;
-        color: white;
+        background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
     }
+
+    /* Thẻ Card hiển thị thông tin ca học */
     .card {
-        padding: 20px;
-        border-radius: 12px;
-        background-color: white;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        padding: 22px;
+        border-radius: 16px;
+        background: #1e293b;
+        border: 1px solid #334155;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
         margin-bottom: 20px;
+    }
+    
+    /* Tiêu đề trong card */
+    .card h4 {
+        color: #38bdf8;
+        margin-bottom: 8px;
+    }
+
+    /* Thanh thông báo info */
+    .stAlert {
+        background-color: #1e293b;
+        color: #e2e8f0;
+        border: 1px solid #334155;
+        border-radius: 10px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -86,19 +119,19 @@ data = tai_du_lieu()
 ngay_thu_7 = data["ngay_thu_7"]
 
 # Tiêu đề trang
-st.markdown("<h1 style='text-align: center; color: #7c3aed;'>🎶 ĐĂNG KÝ HỌC THANH NHẠC</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #6b7280;'>✨ Luyện giọng thăng hoa cùng lớp học ✨</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #a855f7;'>🎶 ĐĂNG KÝ HỌC THANH NHẠC</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #94a3b8;'>✨ Luyện giọng thăng hoa cùng phòng thu lớp mình ✨</p>", unsafe_allow_html=True)
 
-st.info(f"📅 **Lịch học Thứ 7 tuần này:** {ngay_thu_7} (Thời gian: 8:00 - 11:30)\n\n*💡 Hệ thống sẽ tự động reset danh sách đăng ký vào Thứ Hai hàng tuần.*")
+st.info(f"📅 **Lịch học Thứ 7 tuần này:** `{ngay_thu_7}` (Thời gian: **8:00 - 11:30**)\n\n*💡 Hệ thống tự động reset danh sách đăng ký vào Thứ Hai hàng tuần.*")
 
 # Thống kê sĩ số tổng quan
 tong_so_hoc_vien = sum(len(ds) for ds in data["dang_ky"].values())
-st.markdown(f"**🎤 Tổng số học viên đã đăng ký tuần này:** `{tong_so_hoc_vien}/10 chỗ`")
+st.markdown(f"🎤 **Tổng số học viên đã đăng ký tuần này:** `{tong_so_hoc_vien}/10 chỗ`")
 st.progress(tong_so_hoc_vien / 10)
 
 st.write("")
 
-# Hiển thị 2 ca học dưới dạng các cột trực quan
+# Hiển thị 2 ca học dưới dạng 2 cột thẻ card tối màu
 col1, col2 = st.columns(2)
 
 with col1:
@@ -106,8 +139,8 @@ with col1:
     st.markdown(f"""
         <div class="card">
             <h4>🌅 Ca 1 (8:00 - 9:45)</h4>
-            <p>Trạng thái: <b>{siso_1}/5</b> chỗ đã đặt</p>
-            <hr style="margin: 5px 0 10px 0;">
+            <p style="color: #94a3b8; font-size: 14px;">Trạng thái: <b style="color: #38bdf8;">{siso_1}/5</b> chỗ đã đặt</p>
+            <hr style="border-color: #334155; margin: 5px 0 10px 0;">
     """, unsafe_allow_html=True)
     if siso_1 == 0:
         st.caption("Chưa có học viên đăng ký")
@@ -121,8 +154,8 @@ with col2:
     st.markdown(f"""
         <div class="card">
             <h4>☀️ Ca 2 (9:45 - 11:30)</h4>
-            <p>Trạng thái: <b>{siso_2}/5</b> chỗ đã đặt</p>
-            <hr style="margin: 5px 0 10px 0;">
+            <p style="color: #94a3b8; font-size: 14px;">Trạng thái: <b style="color: #38bdf8;">{siso_2}/5</b> chỗ đã đặt</p>
+            <hr style="border-color: #334155; margin: 5px 0 10px 0;">
     """, unsafe_allow_html=True)
     if siso_2 == 0:
         st.caption("Chưa có học viên đăng ký")
@@ -149,7 +182,6 @@ with st.container():
         if not ten_chuan_hoa:
             st.error("Vui lòng nhập tên của bạn!")
         else:
-            # Kiểm tra xem đã đăng ký chưa
             da_dang_ky = False
             ca_cu = ""
             for ca, ds in data["dang_ky"].items():
