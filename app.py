@@ -11,7 +11,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# CSS giao diện phong cách Âm Nhạc, Responsive & Hiệu ứng Modal trung tâm mượt mà
+# CSS giao diện phong cách Âm Nhạc, Responsive & Modal hoàn chỉnh có nút đóng bên trong
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -22,7 +22,6 @@ st.markdown("""
         color: #1f2937;
     }
 
-    /* Hiệu ứng nốt nhạc bay lơ lửng trang trí tiêu đề */
     @keyframes floatNotes {
         0% { transform: translateY(0px) rotate(0deg); }
         50% { transform: translateY(-6px) rotate(5deg); }
@@ -34,7 +33,7 @@ st.markdown("""
         animation: floatNotes 4s ease-in-out infinite;
     }
 
-    /* Tối ưu Input gọn gàng, không có text hướng dẫn rườm rà */
+    /* Tối ưu Input gọn gàng tuyệt đối */
     .stTextInput > div > div > input {
         background-color: #ffffff;
         color: #1f2937;
@@ -73,7 +72,7 @@ st.markdown("""
         transform: translateY(1px);
     }
 
-    /* Thẻ Card Ca học phong cách khuông nhạc */
+    /* Thẻ Card Ca học */
     .card {
         padding: 24px;
         border-radius: 22px;
@@ -95,7 +94,7 @@ st.markdown("""
         font-weight: 800;
     }
 
-    /* Hiệu ứng chuyển động mượt mà cho Modal thông báo ở giữa màn hình */
+    /* Modal trung tâm màn hình */
     @keyframes modalShow {
         from {
             opacity: 0;
@@ -116,9 +115,6 @@ st.markdown("""
         background-color: rgba(0, 0, 0, 0.45);
         backdrop-filter: blur(5px);
         z-index: 9998;
-        display: flex;
-        justify-content: center;
-        align-items: center;
     }
 
     .custom-modal-box {
@@ -151,20 +147,9 @@ st.markdown("""
         margin-bottom: 24px;
     }
 
-    /* Thanh tiến trình âm nhạc */
     .stProgress > div > div > div > div {
         background: linear-gradient(90deg, #f472b6 0%, #be185d 100%);
         border-radius: 12px;
-    }
-
-    /* Responsive tối ưu trên mọi màn hình */
-    @media screen and (max-width: 768px) {
-        h1 {
-            font-size: 1.6rem !important;
-        }
-        .card {
-            padding: 18px;
-        }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -207,14 +192,13 @@ def luu_du_lieu(data):
 data = tai_du_lieu()
 ngay_thu_7 = data["ngay_thu_7"]
 
-# Khởi tạo session state lưu trạng thái modal
 if 'modal_message' not in st.session_state:
     st.session_state['modal_message'] = None
 
 def show_modal(title, message):
     st.session_state['modal_message'] = {"title": title, "text": message}
 
-# Tiêu đề mang âm hưởng âm nhạc
+# Tiêu đề
 st.markdown("""
     <div class="music-header">
         <h1 style='color: #be185d; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0;'>
@@ -228,14 +212,13 @@ st.markdown("""
 
 st.info(f"📅 **Lịch hòa ca Thứ 7 tuần này:** `{ngay_thu_7}` (Thời gian: **8:00 - 11:30**)")
 
-# Thống kê sĩ số tổng quan
 tong_so_hoc_vien = sum(len(ds) for ds in data["dang_ky"].values())
 st.markdown(f"🎧 **Tổng số giọng ca đã đăng ký tuần này:** `{tong_so_hoc_vien}/10 chỗ`")
 st.progress(tong_so_hoc_vien / 10)
 
 st.write("")
 
-# Hiển thị 2 ca học (Responsive)
+# Hiển thị 2 ca học
 col1, col2 = st.columns(2)
 
 with col1:
@@ -279,9 +262,9 @@ if tong_so_hoc_vien < 10:
             st.session_state['ten_input'] = ""
             st.session_state['clear_input'] = False
 
-        ten_hoc_vien = st.text_input("Họ và tên học viên:", placeholder="Nhập tên của bạn...", key="ten_input", label_visibility="collapsed")
+        # Đã loại bỏ hoàn toàn chữ gợi ý (placeholder) và nhãn
+        ten_hoc_vien = st.text_input("Nhập tên", key="ten_input", label_visibility="collapsed")
         
-        # Xác định ca tự động sắp xếp ngầm
         if len(data["dang_ky"]["Ca 1 (8:00 - 9:45)"]) < 5:
             ca_tu_dong = "Ca 1 (8:00 - 9:45)"
         else:
@@ -326,7 +309,8 @@ with st.container():
         st.session_state['input_check'] = ""
         st.session_state['clear_check'] = False
 
-    ten_kiem_tra = st.text_input("Nhập tên để tìm lịch diễn:", placeholder="Nhập tên học viên cần tìm...", key="input_check", label_visibility="collapsed")
+    # Đã loại bỏ hoàn toàn chữ gợi ý (placeholder) và nhãn
+    ten_kiem_tra = st.text_input("Tra cứu", key="input_check", label_visibility="collapsed")
     
     if st.button("🎵 Tra Cứu Lịch Biểu"):
         st.session_state['search_name'] = ten_kiem_tra.strip()
@@ -352,24 +336,25 @@ if 'search_name' in st.session_state and st.session_state['search_name']:
         show_modal("⚠️ Không Tìm Thấy", f"Không tìm thấy dữ liệu đăng ký cho tên **{name_to_find}** trong tuần này.")
 
 
-# ================= HIỂN THỊ MODAL TRUNG TÂM NẾU CÓ THÔNG BÁO =================
+# ================= HIỂN THỊ MODAL TRUNG TÂM KÈM NÚT QUAY LẠI CHUẨN XÁC =================
 if st.session_state['modal_message']:
     m_data = st.session_state['modal_message']
+    
+    # Hiển thị lớp phủ và hộp thoại modal nổi ở giữa
     st.markdown(f"""
-        <div class="modal-overlay">
-            <div class="custom-modal-box">
-                <h3>{m_data['title']}</h3>
-                <p>{m_data['text']}</p>
-            </div>
+        <div class="modal-overlay"></div>
+        <div class="custom-modal-box">
+            <h3>{m_data['title']}</h3>
+            <p>{m_data['text']}</p>
         </div>
     """, unsafe_allow_html=True)
     
-    # Nút bấm quay lại màn hình chính nằm gọn ngay trong khung modal
-    col_m1, col_m2, col_m3 = st.columns([1, 2, 1])
-    with col_m2:
-        if st.button("⬅️ Quay lại màn hình chính"):
-            st.session_state['modal_message'] = None
-            st.rerun()
+    # Đặt nút bấm quay lại ngay bên dưới để Streamlit render đè lên khung modal ở giữa màn hình
+    st.markdown("<div style='position: fixed; top: 56%; left: 50%; transform: translate(-50%, 0); z-index: 10000; width: 80%; max-width: 320px;'>", unsafe_allow_html=True)
+    if st.button("⬅️ Quay lại màn hình chính", key="btn_dong_modal_chinh"):
+        st.session_state['modal_message'] = None
+        st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ================= CHỈ HIỆN SHEET KHI ĐỦ 10/10 HỌC VIÊN =================
