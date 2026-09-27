@@ -119,10 +119,6 @@ tong_so_hoc_vien = sum(len(ds) for ds in data["dang_ky"].values())
 st.markdown(f"🎤 **Tổng số học viên đã đăng ký tuần này:** `{tong_so_hoc_vien}/10 chỗ`")
 st.progress(tong_so_hoc_vien / 10)
 
-# THÔNG BÁO KHI ĐÃ ĐỦ 10 HỌC VIÊN
-if tong_so_hoc_vien == 10:
-    st.success("🎉 **Lớp học đã đủ 10/10 học viên đăng ký!** Dưới đây là bảng tổng kết chi tiết ca học.")
-
 st.write("")
 
 # Hiển thị 2 ca học dưới dạng 2 cột thẻ card trắng viền hồng
@@ -158,42 +154,9 @@ with col2:
             st.write(f"{idx}. {hv}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ================= PHẦN HIỂN THỊ DẠNG SHEET (BẢNG TỔNG KẾT) =================
+
+# ================= PHẦN ĐĂNG KÝ LỊCH HỌC =================
 st.divider()
-st.subheader("📊 Bảng Sheet Tổng Hợp Danh Sách Học Viên")
-st.markdown("Bảng dữ liệu dưới đây tự động cập nhật trực tiếp theo thời gian thực khi các học viên đăng ký:")
-
-# Chuẩn bị dữ liệu để đưa vào bảng dạng Sheet (DataFrame)
-danh_sach_sheet = []
-for ca, ds_hv in data["dang_ky"].items():
-    for i, hv in enumerate(ds_hv, 1):
-        danh_sach_sheet.append({
-            "STT": len(danh_sach_sheet) + 1,
-            "Họ và Tên": hv,
-            "Ca Học": ca,
-            "Ngày Học": ngay_thu_7,
-            "Trạng Thái": "Đã xác nhận"
-        })
-
-if danh_sach_sheet:
-    df_sheet = pd.DataFrame(danh_sach_sheet)
-    # Hiển thị bảng dạng interactive sheet chuyên nghiệp
-    st.dataframe(df_sheet, use_container_width=True, hide_index=True)
-    
-    # Nút hỗ trợ xuất file Excel/CSV nếu cần lưu trữ
-    csv_data = df_sheet.to_csv(index=False).encode('utf-8')
-    st.download_button(
-        label="📥 Tải xuống bảng danh sách (File CSV/Excel)",
-        data=csv_data,
-        file_name=f"Danh_sach_thanh_nhac_ngay_{ngay_thu_7.replace('/', '_')}.csv",
-        mime="text/csv"
-    )
-else:
-    st.info("Chưa có dữ liệu học viên trong bảng sheet tuần này.")
-
-st.divider()
-
-# Form đăng ký
 st.subheader("✍️ Đăng Ký Lịch Học")
 with st.container():
     ten_hoc_vien = st.text_input("Họ và tên học viên:", placeholder="Nhập tên của bạn...")
@@ -221,33 +184,88 @@ with st.container():
                 st.warning(f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi người chỉ được chọn 1 ca.")
             else:
                 if len(data["dang_ky"][ca_chon]) >= 5:
-                    st.error(f"Ca **{ca_chon}** đã đủ 5/5 học viên. Vuint lòng chọn ca còn lại!")
+                    st.error(f"Ca **{ca_chon}** đã đủ 5/5 học viên. Vui lòng chọn ca còn lại!")
                 else:
                     data["dang_ky"][ca_chon].append(ten_chuan_hoa)
                     luu_du_lieu(data)
                     st.success(f"🎉 Chúc mừng **{ten_chuan_hoa}** đã đăng ký thành công ca **{ca_chon}**!")
                     st.rerun()
 
-st.divider()
 
-# Khu vực kiểm tra & hủy lịch cá nhân
+# ================= PHẦN KIỂM TRA & HỦY LỊCH CÁ NHÂN =================
+st.divider()
 st.subheader("🔍 Kiểm Tra & Hủy Lịch Đã Đăng Ký")
 with st.container():
     ten_kiem_tra = st.text_input("Nhập họ và tên để tìm lịch:", placeholder="Tên học viên cần tìm...", key="input_check")
+    
     if st.button("Tra Cứu Lịch"):
-        if not ten_kiem_tra.strip():
-            st.warning("Vui lòng nhập tên để tìm kiếm.")
-        else:
-            tim_thay = False
-            for ca, ds in data["dang_ky"].items():
-                if ten_kiem_tra.strip() in ds:
-                    tim_thay = True
-                    st.info(f"Học viên **{ten_kiem_tra.strip()}** đang có lịch ở **{ca}**.")
-                    if st.button("Hủy đăng ký ca này (để đổi ca)"):
-                        data["dang_ky"][ca].remove(ten_kiem_tra.strip())
-                        luu_du_lieu(data)
-                        st.success("Đã hủy lịch thành công! Bạn có thể chọn lại ca mới ở trên.")
-                        st.rerun()
-                    break
-            if not tim_thay:
-                st.warning(f"Không tìm thấy dữ liệu đăng ký nào cho tên **{ten_kiem_tra.strip()}** trong tuần này.")
+        st.session_state['search_name'] = ten_kiem_tra.strip()
+
+# Xử lý kết quả tìm kiếm và hiển thị nút hủy trực tiếp ổn định
+if 'search_name' in st.session_state and st.session_state['search_name']:
+    name_to_find = st.session_state['search_name']
+    tim_thay = False
+    for ca, ds in data["dang_ky"].items():
+        if name_to_find in ds:
+            tim_thay = True
+            st.info(f"Học viên **{name_to_find}** hiện đang đăng ký ở **{ca}**.")
+            
+            # Nút hủy lịch trực tiếp gọn gàng
+            if st.button(f"❌ Xác nhận HỦY lịch của {name_to_find}", key="btn_huy_lich_action"):
+                data["dang_ky"][ca].remove(name_to_find)
+                luu_du_lieu(data)
+                del st.session_state['search_name']
+                st.success("Đã hủy lịch thành công! Bạn có thể chọn lại ca mới.")
+                st.rerun()
+            break
+            
+    if not tim_thay:
+        st.warning(f"Không tìm thấy dữ liệu đăng ký cho tên **{name_to_find}** trong tuần này.")
+
+
+# ================= CHỈ HIỆN SHEET KHI ĐỦ 10/10 HỌC VIÊN =================
+if tong_so_hoc_vien == 10:
+    st.divider()
+    st.success("🎉 **Lớp học đã đủ 10/10 học viên đăng ký! Bảng Sheet tổng hợp chính thức được mở:**")
+    st.subheader("📊 Bảng Sheet Tổng Hợp Chi Tiết Từng Ca")
+    
+    sheet_col1, sheet_col2 = st.columns(2)
+
+    with sheet_col1:
+        st.markdown("#### **📋 Sheet Ca 1 (8:00 - 9:45)**")
+        ds_ca1 = data["dang_ky"]["Ca 1 (8:00 - 9:45)"]
+        df_ca1 = pd.DataFrame({
+            "STT": range(1, len(ds_ca1) + 1),
+            "Họ và Tên": ds_ca1,
+            "Trạng thái": ["Đã xác nhận"] * len(ds_ca1)
+        })
+        st.dataframe(df_ca1, use_container_width=True, hide_index=True)
+
+    with sheet_col2:
+        st.markdown("#### **📋 Sheet Ca 2 (9:45 - 11:30)**")
+        ds_ca2 = data["dang_ky"]["Ca 2 (9:45 - 11:30)"]
+        df_ca2 = pd.DataFrame({
+            "STT": range(1, len(ds_ca2) + 1),
+            "Họ và Tên": ds_ca2,
+            "Trạng thái": ["Đã xác nhận"] * len(ds_ca2)
+        })
+        st.dataframe(df_ca2, use_container_width=True, hide_index=True)
+
+    # Nút tải xuống file tổng hợp
+    danh_sach_tong_hop = []
+    for ca, ds_hv in data["dang_ky"].items():
+        for hv in ds_hv:
+            danh_sach_tong_hop.append({
+                "Họ và Tên": hv,
+                "Ca Học": ca,
+                "Ngày Học": ngay_thu_7
+            })
+
+    df_tong = pd.DataFrame(danh_sach_tong_hop)
+    csv_data = df_tong.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Tải xuống file Excel/CSV tổng hợp cả lớp",
+        data=csv_data,
+        file_name=f"Danh_sach_thanh_nhac_{ngay_thu_7.replace('/', '_')}.csv",
+        mime="text/csv"
+    )
