@@ -1,619 +1,194 @@
-import json
-from datetime import date, timedelta
-from google.oauth2.service_account import Credentials
-import gspread
-import pandas as pd
 import streamlit as st
+import json
+import os
+from datetime import datetime, timedelta
 
-# 1. Cấu hình trang
+# Cấu hình trang Streamlit
 st.set_page_config(
-    page_title="Lịch Học Thanh Nhạc - Ms GEMMA",
-    page_icon="🎵",
-    layout="centered",
-    initial_sidebar_state="collapsed",
+    page_title="Hệ Thống Đăng Ký Thanh Nhạc",
+    page_icon="🎶",
+    layout="centered"
 )
 
-# 2. Tùy chỉnh CSS Giao diện Tone Sáng, Animation & Tắt autocomplete
-st.markdown(
-    """
+# CSS tùy chỉnh giao diện chuyên nghiệp, hiện đại
+st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-    * {
-        font-family: 'Plus Jakarta Sans', sans-serif;
+    .main {
+        background-color: #f8f9fa;
     }
-
-    /* Gradient Background Tone Sáng */
-    .stApp {
-        background: linear-gradient(135deg, #FAF8FF 0%, #FFF0F5 50%, #F0F7FF 100%);
-        color: #2D3748;
+    .stTextInput > div > div > input {
+        border-radius: 8px;
     }
-
-    /* Keyframes Animations */
-    @keyframes float {
-        0% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-8px) rotate(2deg); }
-        100% { transform: translateY(0px) rotate(0deg); }
+    .stSelectbox > div > div > div {
+        border-radius: 8px;
     }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(12px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes pulseGlow {
-        0% { box-shadow: 0 4px 15px rgba(233, 64, 87, 0.2); }
-        50% { box-shadow: 0 8px 25px rgba(233, 64, 87, 0.4); }
-        100% { box-shadow: 0 4px 15px rgba(233, 64, 87, 0.2); }
-    }
-
-    /* Animation mượt cho Pop-up Box (st.dialog) */
-    @keyframes modalPop {
-        0% {
-            opacity: 0;
-            transform: scale(0.82) translateY(20px);
-        }
-        100% {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
-    }
-
-    @keyframes backdropFade {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    /* Tùy chỉnh Cửa sổ Dialog / Modal */
-    div[role="dialog"], div[data-testid="stDialog"], div[data-testid="stModal"] {
-        animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
-        border-radius: 24px !important;
-        border: 1px solid rgba(233, 64, 87, 0.25) !important;
-        box-shadow: 0 20px 50px rgba(142, 36, 170, 0.2) !important;
-        background: #FFFFFF !important;
-    }
-
-    div[data-testid="stDialog"] > div:first-child,
-    div[role="dialog"] > div:first-child {
-        backdrop-filter: blur(8px) !important;
-        background-color: rgba(0, 0, 0, 0.35) !important;
-        animation: backdropFade 0.3s ease-out forwards !important;
-    }
-
-    /* Header Container */
-    .header-container {
-        text-align: center;
-        padding: 20px 10px 10px 10px;
-        animation: fadeIn 0.8s ease-out;
-    }
-
-    .music-icon {
-        font-size: 3.2rem;
-        display: inline-block;
-        animation: float 3s ease-in-out infinite;
-        margin-bottom: 5px;
-    }
-
-    .music-header {
-        background: linear-gradient(135deg, #E91E63 0%, #9C27B0 50%, #673AB7 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
-        font-size: 2.2rem;
-        letter-spacing: -0.5px;
-        margin: 0;
-    }
-
-    .music-subtitle {
-        color: #718096;
-        font-weight: 500;
-        font-size: 1.05rem;
-        margin-top: 6px;
-    }
-
-    /* Date Banner Card */
-    .date-card {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(233, 64, 87, 0.2);
-        border-radius: 16px;
-        padding: 14px 20px;
-        text-align: center;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #C2185B;
-        box-shadow: 0 8px 20px rgba(233, 64, 87, 0.08);
-        margin: 15px 0 25px 0;
-        animation: fadeIn 1s ease-out;
-    }
-
-    /* Ca Học Cards */
-    .ca-card {
-        background: #FFFFFF;
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
-        border: 1px solid #F1F5F9;
-        transition: all 0.3s ease;
-        margin-bottom: 15px;
-    }
-
-    .ca-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 15px 30px rgba(156, 39, 176, 0.1);
-        border-color: #E1BEE7;
-    }
-
-    /* Student Badge Chip */
-    .student-chip {
-        display: inline-flex;
-        align-items: center;
-        background: linear-gradient(135deg, #F3E5F5 0%, #FCE4EC 100%);
-        color: #8E24AA;
-        font-weight: 600;
-        padding: 8px 14px;
-        border-radius: 12px;
-        margin: 4px;
-        font-size: 0.95rem;
-        box-shadow: 0 2px 6px rgba(142, 36, 170, 0.08);
-        animation: fadeIn 0.4s ease-in-out;
-    }
-
-    /* Custom Form Styling */
-    div[data-testid="stForm"] {
-        background: #FFFFFF;
-        border-radius: 24px;
-        padding: 25px;
-        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.05);
-        border: 1px solid #F3E8FF;
-    }
-
-    /* Custom Button */
-    .stButton>button {
-        background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 14px !important;
-        font-weight: 700 !important;
-        padding: 12px 24px !important;
-        font-size: 1.05rem !important;
+    div.stButton > button {
+        border-radius: 8px;
+        font-weight: bold;
+        background-color: #7c3aed;
+        color: white;
         width: 100%;
-        transition: all 0.3s ease !important;
-        animation: pulseGlow 3s infinite;
     }
-
-    .stButton>button:hover {
-        transform: translateY(-2px) scale(1.01) !important;
-        box-shadow: 0 10px 25px rgba(233, 64, 87, 0.4) !important;
+    div.stButton > button:hover {
+        background-color: #6d28d9;
+        color: white;
     }
-
-    /* Custom Input Fields */
-    .stTextInput input, .stSelectbox div[data-baseweb="select"] {
-        border-radius: 12px !important;
-        border: 1px solid #E2E8F0 !important;
-        background-color: #FAFAFA !important;
-        color: #2D3748 !important;
-    }
-
-    .stTextInput input:focus {
-        border-color: #AB47BC !important;
-        box-shadow: 0 0 0 3px rgba(171, 71, 188, 0.15) !important;
-    }
-
-    @media (max-width: 768px) {
-        .music-header { font-size: 1.7rem; }
-        .music-subtitle { font-size: 0.95rem; }
+    .card {
+        padding: 20px;
+        border-radius: 12px;
+        background-color: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
     }
     </style>
-    """,
-    unsafe_allow_html=True,
-)
+""", unsafe_allow_html=True)
 
-# 3. Khai báo Hằng số
-CA_1 = "Ca 1 (08:00 - 09:45)"
-CA_2 = "Ca 2 (09:45 - 11:30)"
-MAX_GUEST_PER_CA = 5
+DATA_FILE = "data_dang_ky.json"
+CA_HOC_MAC_DINH = {
+    "Ca 1 (8:00 - 9:45)": 5,
+    "Ca 2 (9:45 - 11:30)": 5
+}
 
+def lay_ngay_thu_7_gan_nhat():
+    ngay_hien_tai = datetime.now()
+    so_ngay_den_thu_7 = (5 - ngay_hien_tai.weekday()) % 7
+    thu_7 = ngay_hien_tai + timedelta(days=so_ngay_den_thu_7)
+    return thu_7.strftime("%d/%m/%Y")
 
-def get_current_week_saturday():
-  today = date.today()
-  saturday = today + timedelta(days=(5 - today.weekday()))
-  return saturday
+def tai_du_lieu():
+    tuan_hien_tai = datetime.now().strftime("%Y-W%V")
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            if data.get("tuan") != tuan_hien_tai:
+                return tao_du_lieu_moi(tuan_hien_tai)
+            return data
+    else:
+        return tao_du_lieu_moi(tuan_hien_tai)
 
+def tao_du_lieu_moi(tuan_hien_tai):
+    data = {
+        "tuan": tuan_hien_tai,
+        "ngay_thu_7": lay_ngay_thu_7_gan_nhat(),
+        "dang_ky": {
+            "Ca 1 (8:00 - 9:45)": [],
+            "Ca 2 (9:45 - 11:30)": []
+        }
+    }
+    luu_du_lieu(data)
+    return data
 
-def get_user_bookings(slots, name):
-  return [
-      slot for slot, assigned in slots.items()
-      if assigned is not None and str(assigned).casefold() == str(name).casefold()
-  ]
+def luu_du_lieu(data):
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
 
+data = tai_du_lieu()
+ngay_thu_7 = data["ngay_thu_7"]
 
-def remove_booking(slots, name, slot_to_remove):
-  updated = dict(slots)
-  if str(updated.get(slot_to_remove, "")).casefold() == str(name).casefold():
-    updated[slot_to_remove] = None
-  return updated
+# Tiêu đề trang
+st.markdown("<h1 style='text-align: center; color: #7c3aed;'>🎶 ĐĂNG KÝ HỌC THANH NHẠC</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #6b7280;'>✨ Luyện giọng thăng hoa cùng lớp học ✨</p>", unsafe_allow_html=True)
 
+st.info(f"📅 **Lịch học Thứ 7 tuần này:** {ngay_thu_7} (Thời gian: 8:00 - 11:30)\n\n*💡 Hệ thống sẽ tự động reset danh sách đăng ký vào Thứ Hai hàng tuần.*")
 
-def normalize_service_account_info(info):
-  if not isinstance(info, dict):
-    raise TypeError("Google Sheets secret must be a dictionary or JSON string.")
+# Thống kê sĩ số tổng quan
+tong_so_hoc_vien = sum(len(ds) for ds in data["dang_ky"].values())
+st.markdown(f"**🎤 Tổng số học viên đã đăng ký tuần này:** `{tong_so_hoc_vien}/10 chỗ`")
+st.progress(tong_so_hoc_vien / 10)
 
-  cleaned = dict(info)
-  cleaned.pop("spreadsheet", None)
-
-  if "private_key" in cleaned and isinstance(cleaned["private_key"], str):
-    pk = cleaned["private_key"].replace("\\n", "\n").replace("\\r", "\r")
-    pk = pk.strip()
-    if not pk.endswith("\n") and "END PRIVATE KEY" in pk:
-      pk += "\n"
-    cleaned["private_key"] = pk
-
-  return cleaned
-
-
-def get_service_account_config():
-  for secret_source in (
-      st.secrets.get("connections", {}).get("gsheets"),
-      st.secrets.get("gsheets"),
-  ):
-    if secret_source is None:
-      continue
-
-    if isinstance(secret_source, str):
-      try:
-        secret_source = json.loads(secret_source)
-      except json.JSONDecodeError:
-        raise ValueError("Google Sheets secret is not valid JSON.")
-
-    if isinstance(secret_source, dict):
-      return normalize_service_account_info(secret_source)
-
-  raise KeyError("Missing Google Sheets connection secret.")
-
-
-# 4. Kết nối Gspread an toàn với trình xử lý Private Key chống lỗi MalformedError
-def get_gspread_client():
-  scopes = [
-      "https://www.googleapis.com/auth/spreadsheets",
-      "https://www.googleapis.com/auth/drive",
-  ]
-
-  creds_dict = get_service_account_config()
-  creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
-  return gspread.authorize(creds)
-
-
-def get_spreadsheet_url():
-  try:
-    return st.secrets["connections"]["gsheets"]["spreadsheet"]
-  except Exception:
-    return st.secrets["gsheets"]["spreadsheet"]
-
-
-@st.cache_data(ttl=5)
-def load_data():
-  try:
-    client = get_gspread_client()
-    spreadsheet = client.open_by_url(get_spreadsheet_url())
-    worksheet = spreadsheet.get_worksheet(0)
-    data = worksheet.get_all_records()
-    df = pd.DataFrame(data)
-    if df.empty or "ngay" not in df.columns:
-      return pd.DataFrame(columns=["ngay", "ca", "hoc_vien"])
-    return df
-  except Exception:
-    return pd.DataFrame(columns=["ngay", "ca", "hoc_vien"])
-
-
-def update_gsheets(df):
-  client = get_gspread_client()
-  spreadsheet = client.open_by_url(get_spreadsheet_url())
-  worksheet = spreadsheet.get_worksheet(0)
-  worksheet.clear()
-  df_to_save = df.fillna("")
-  rows = [df_to_save.columns.values.tolist()] + df_to_save.values.tolist()
-  worksheet.update(rows)
-
-
-def save_booking(date_str, ca, name):
-  df = load_data()
-  new_row = pd.DataFrame([{"ngay": date_str, "ca": ca, "hoc_vien": name}])
-  df = pd.concat([df, new_row], ignore_index=True)
-  update_gsheets(df)
-  st.cache_data.clear()
-
-
-def delete_booking(date_str, ca, name):
-  df = load_data()
-  df = df[
-      ~(
-          (df["ngay"].astype(str) == str(date_str))
-          & (df["ca"].astype(str) == str(ca))
-          & (df["hoc_vien"].astype(str).str.casefold() == str(name).casefold())
-      )
-  ].reset_index(drop=True)
-  update_gsheets(df)
-  st.cache_data.clear()
-
-
-# 5. Hàm hiển thị Cửa sổ Thông báo Pop-up Modal (st.dialog)
-@st.dialog("🔔 THÔNG BÁO")
-def show_popup_dialog(title, message, icon="✨"):
-  st.markdown(
-      f"<div style='text-align: center; font-size: 3.5rem;"
-      f" margin-bottom: 5px;'>{icon}</div>",
-      unsafe_allow_html=True,
-  )
-  st.markdown(
-      f"<h3 style='text-align: center; color: #8E24AA; margin-bottom:"
-      f" 15px;'>{title}</h3>",
-      unsafe_allow_html=True,
-  )
-  st.markdown(
-      f"<div style='text-align: center; font-size: 1.05rem; color: #4A5568;"
-      f" line-height: 1.6;'>{message}</div>",
-      unsafe_allow_html=True,
-  )
-  st.write("")
-  if st.button("Đóng / Xác nhận", use_container_width=True):
-    st.session_state["popup_trigger"] = None
-    st.rerun()
-
-
-if (
-    "popup_trigger" in st.session_state
-    and st.session_state["popup_trigger"] is not None
-):
-  p = st.session_state["popup_trigger"]
-  show_popup_dialog(p["title"], p["message"], p["icon"])
-
-# 6. Giao diện Header
-st.markdown(
-    """
-    <div class="header-container">
-        <div class="music-icon">🎼</div>
-        <h1 class="music-header">ĐĂNG KÝ HỌC THANH NHẠC</h1>
-        <div class="music-subtitle">✨ Luyện giọng thăng hoa cùng Ms GEMMA ✨</div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-selected_date = get_current_week_saturday()
-date_str = selected_date.isoformat()
-date_formatted = selected_date.strftime("%d/%m/%Y")
-
-st.markdown(
-    f"""
-    <div class="date-card">
-        📅 Lịch Học Thứ 7 Tuần Này: <span>{date_formatted}</span>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-# 7. Đọc dữ liệu từ Google Sheets
-df_all = load_data()
-df_today = (
-    df_all[df_all["ngay"].astype(str) == str(date_str)]
-    if not df_all.empty and "ngay" in df_all.columns
-    else pd.DataFrame(columns=["ngay", "ca", "hoc_vien"])
-)
-
-list_ca1 = (
-    df_today[df_today["ca"] == CA_1]["hoc_vien"].tolist()
-    if not df_today.empty and "ca" in df_today.columns
-    else []
-)
-list_ca2 = (
-    df_today[df_today["ca"] == CA_2]["hoc_vien"].tolist()
-    if not df_today.empty and "ca" in df_today.columns
-    else []
-)
-
-total_booked = len(list_ca1) + len(list_ca2)
-
-# Thanh tiến trình tổng
-st.markdown("##### 🎙️ Tổng số học viên đã đăng ký tuần này")
-st.progress(total_booked / 10)
-st.caption(f"Trạng thái: **{total_booked}/10** chỗ đã có chủ")
 st.write("")
 
-# 8. Hiển thị 2 Ca Học trong Thẻ
+# Hiển thị 2 ca học dưới dạng các cột trực quan
 col1, col2 = st.columns(2)
 
 with col1:
-  st.markdown(
-      f"""
-        <div class="ca-card">
-            <h4 style="color:#C2185B; margin:0 0 8px 0;">🌅 Ca 1 (08:00 - 09:45)</h4>
-            <div style="font-weight:600; color:#718096; margin-bottom:12px;">
-                Chỗ đã đặt: <b style="color:#8E24AA;">{len(list_ca1)}/{MAX_GUEST_PER_CA}</b>
-            </div>
-        """,
-      unsafe_allow_html=True,
-  )
-  if list_ca1:
-    chips_html = "".join([
-        f'<div class="student-chip">👤 {name}</div>' for name in list_ca1
-    ])
-    st.markdown(chips_html, unsafe_allow_html=True)
-  else:
-    st.info("Chưa có học viên đăng ký")
-  st.markdown("</div>", unsafe_allow_html=True)
+    siso_1 = len(data["dang_ky"]["Ca 1 (8:00 - 9:45)"])
+    st.markdown(f"""
+        <div class="card">
+            <h4>🌅 Ca 1 (8:00 - 9:45)</h4>
+            <p>Trạng thái: <b>{siso_1}/5</b> chỗ đã đặt</p>
+            <hr style="margin: 5px 0 10px 0;">
+    """, unsafe_allow_html=True)
+    if siso_1 == 0:
+        st.caption("Chưa có học viên đăng ký")
+    else:
+        for idx, hv in enumerate(data["dang_ky"]["Ca 1 (8:00 - 9:45)"], 1):
+            st.write(f"{idx}. {hv}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with col2:
-  st.markdown(
-      f"""
-        <div class="ca-card">
-            <h4 style="color:#C2185B; margin:0 0 8px 0;">🌤️ Ca 2 (09:45 - 11:30)</h4>
-            <div style="font-weight:600; color:#718096; margin-bottom:12px;">
-                Chỗ đã đặt: <b style="color:#8E24AA;">{len(list_ca2)}/{MAX_GUEST_PER_CA}</b>
-            </div>
-        """,
-      unsafe_allow_html=True,
-  )
-  if list_ca2:
-    chips_html = "".join([
-        f'<div class="student-chip">👤 {name}</div>' for name in list_ca2
-    ])
-    st.markdown(chips_html, unsafe_allow_html=True)
-  else:
-    st.info("Chưa có học viên đăng ký")
-  st.markdown("</div>", unsafe_allow_html=True)
-
-st.write("")
-
-# 9. Form Đăng Ký HOẶC Hiển Thị Bảng Tổng Hợp Khi Đã Kín Chỗ
-if total_booked >= 10:
-  st.balloons()
-  st.success(
-      f"🎉 **Tất cả các ca học ngày {date_formatted} đã kín chỗ! Cảm ơn các"
-      " bạn.**"
-  )
-
-  ca1_str = (
-      "<br>".join([f"&nbsp;&nbsp;<b>{i+1}.</b> {n}" for i, n in enumerate(list_ca1)])
-      if list_ca1
-      else "<i>Trống</i>"
-  )
-  ca2_str = (
-      "<br>".join([f"&nbsp;&nbsp;<b>{i+1}.</b> {n}" for i, n in enumerate(list_ca2)])
-      if list_ca2
-      else "<i>Trống</i>"
-  )
-
-  st.markdown(
-      f"""
-    <div style="background: #FFFFFF; border-radius: 20px; padding: 22px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1.5px solid #E1BEE7; margin-top: 15px;">
-        <h4 style="color: #8E24AA; margin-top: 0; text-align: center; border-bottom: 2px solid #F3E5F5; padding-bottom: 10px;">
-            📜 DANH SÁCH TỔNG HỢP 10 HỌC VIÊN TUẦN NÀY
-        </h4>
-        <div style="margin-top: 15px;">
-            <p style="font-weight: 700; color: #C2185B; margin-bottom: 6px; font-size: 1.05rem;">🌅 Ca 1 (08:00 - 09:45):</p>
-            <div style="color: #2D3748; line-height: 1.7; font-size: 1rem;">{ca1_str}</div>
-        </div>
-        <div style="margin-top: 20px;">
-            <p style="font-weight: 700; color: #C2185B; margin-bottom: 6px; font-size: 1.05rem;">🌤️ Ca 2 (09:45 - 11:30):</p>
-            <div style="color: #2D3748; line-height: 1.7; font-size: 1rem;">{ca2_str}</div>
-        </div>
-    </div>
-    """,
-      unsafe_allow_html=True,
-  )
-else:
-  st.markdown("### ✍️ Đăng Ký Lịch Học")
-  available_cas = []
-  if len(list_ca1) < MAX_GUEST_PER_CA:
-    available_cas.append(f"{CA_1} (Còn {MAX_GUEST_PER_CA - len(list_ca1)} chỗ)")
-  if len(list_ca2) < MAX_GUEST_PER_CA:
-    available_cas.append(f"{CA_2} (Còn {MAX_GUEST_PER_CA - len(list_ca2)} chỗ)")
-
-  with st.form("form_dang_ky", clear_on_submit=True):
-    ho_ten = st.text_input(
-        "Họ và tên học viên:",
-        placeholder="Nhập tên của bạn...",
-        autocomplete="off",
-    )
-    ca_chon_raw = st.selectbox("Chọn ca học mong muốn:", available_cas)
-    submit_btn = st.form_submit_button("🎶 XÁC NHẬN ĐĂNG KÝ")
-
-  if submit_btn:
-    ho_ten_clean = ho_ten.strip()
-    if not ho_ten_clean:
-      st.session_state["popup_trigger"] = {
-          "title": "Chưa Nhập Tên",
-          "message": "Vui lòng điền họ và tên học viên trước khi bấm đăng ký!",
-          "icon": "⚠️",
-      }
-      st.rerun()
+    siso_2 = len(data["dang_ky"]["Ca 2 (9:45 - 11:30)"])
+    st.markdown(f"""
+        <div class="card">
+            <h4>☀️ Ca 2 (9:45 - 11:30)</h4>
+            <p>Trạng thái: <b>{siso_2}/5</b> chỗ đã đặt</p>
+            <hr style="margin: 5px 0 10px 0;">
+    """, unsafe_allow_html=True)
+    if siso_2 == 0:
+        st.caption("Chưa có học viên đăng ký")
     else:
-      all_registered_names = [n.casefold() for n in (list_ca1 + list_ca2)]
-      if ho_ten_clean.casefold() in all_registered_names:
-        st.session_state["popup_trigger"] = {
-            "title": "Đã Đăng Ký Trước Đó",
-            "message": (
-                f"Học viên <b>{ho_ten_clean}</b> đã có tên trong danh sách đăng"
-                f" ký ngày {date_formatted}.<br><br><i>Mỗi học viên chỉ đăng ký"
-                " 1 ca/tuần.</i>"
-            ),
-            "icon": "❌",
-        }
-        st.rerun()
-      else:
-        selected_ca = CA_1 if CA_1 in ca_chon_raw else CA_2
-        save_booking(date_str, selected_ca, ho_ten_clean)
-        st.balloons()
-        st.session_state["popup_trigger"] = {
-            "title": "Đăng Ký Thành Công!",
-            "message": (
-                f"Chúc mừng học viên <b>{ho_ten_clean}</b>!<br><br>• Lịch"
-                f" học: <b>Thứ 7 ({date_formatted})</b><br>• Ca học:"
-                f" <b>{selected_ca}</b>"
-            ),
-            "icon": "🎉",
-        }
-        st.rerun()
+        for idx, hv in enumerate(data["dang_ky"]["Ca 2 (9:45 - 11:30)"], 1):
+            st.write(f"{idx}. {hv}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# 10. Form Kiểm Tra & Hủy Ca
-st.write("")
-st.markdown("---")
-st.markdown("### 🔍 Kiểm Tra & Hủy Lịch Đã Đăng Ký")
+st.divider()
 
-with st.form("form_lich_su", clear_on_submit=True):
-  ho_ten_history = st.text_input(
-      "Nhập họ và tên để kiểm tra:",
-      placeholder="Tên học viên cần tìm...",
-      autocomplete="off",
-  )
-  xem_lich_su = st.form_submit_button("🔎 Tra Cứu Lịch")
+# Form đăng ký
+st.subheader("✍️ Đăng Ký Lịch Học")
+with st.container():
+    ten_hoc_vien = st.text_input("Họ và tên học viên:", placeholder="Nhập tên của bạn...")
+    
+    ca_chon = st.selectbox(
+        "Chọn ca học mong muốn:", 
+        list(CA_HOC_MAC_DINH.keys()),
+        format_func=lambda x: f"{x} (Còn {5 - len(data['dang_ky'][x])} chỗ)"
+    )
 
-if xem_lich_su:
-  search_clean = ho_ten_history.strip()
-  if not search_clean:
-    st.session_state["popup_trigger"] = {
-        "title": "Thông Báo",
-        "message": "Vui lòng nhập tên học viên để tra cứu!",
-        "icon": "⚠️",
-    }
-    st.rerun()
-  else:
-    st.session_state["searched_name"] = search_clean
+    if st.button("Xác Nhận Đăng Ký"):
+        ten_chuan_hoa = ten_hoc_vien.strip()
+        if not ten_chuan_hoa:
+            st.error("Vui lòng nhập tên của bạn!")
+        else:
+            # Kiểm tra xem đã đăng ký chưa
+            da_dang_ky = False
+            ca_cu = ""
+            for ca, ds in data["dang_ky"].items():
+                if ten_chuan_hoa in ds:
+                    da_dang_ky = True
+                    ca_cu = ca
+                    break
+            
+            if da_dang_ky:
+                st.warning(f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi người chỉ được chọn 1 ca.")
+            else:
+                if len(data["dang_ky"][ca_chon]) >= 5:
+                    st.error(f"Ca **{ca_chon}** đã đủ 5/5 học viên. Vui lòng chọn ca còn lại!")
+                else:
+                    data["dang_ky"][ca_chon].append(ten_chuan_hoa)
+                    luu_du_lieu(data)
+                    st.success(f"🎉 Chúc mừng **{ten_chuan_hoa}** đã đăng ký thành công ca **{ca_chon}**!")
+                    st.rerun()
 
-# Hiển thị kết quả tra cứu nếu có
-searched_name = st.session_state.get("searched_name", "")
-if searched_name:
-  user_bookings = df_today[
-      df_today["hoc_vien"].str.casefold() == searched_name.casefold()
-  ]
-  if user_bookings.empty:
-    st.session_state["popup_trigger"] = {
-        "title": "Không Tìm Thấy",
-        "message": (
-            f"Không tìm thấy thông tin đăng ký nào của <b>{searched_name}</b>"
-            f" trong ngày {date_formatted}."
-        ),
-        "icon": "🔍",
-    }
-    st.session_state["searched_name"] = ""
-    st.rerun()
-  else:
-    st.info(f"📋 Kết quả tra cứu cho học viên: **{searched_name}**")
-    for _, row in user_bookings.iterrows():
-      col_info, col_del = st.columns([3, 1])
-      with col_info:
-        st.write(f"📌 **{row['ca']}**")
-      with col_del:
-        if st.button("🗑️ Hủy ca", key=f"del_{row['ca']}_{row['hoc_vien']}"):
-          delete_booking(date_str, row["ca"], row["hoc_vien"])
-          st.session_state["searched_name"] = ""
-          st.session_state["popup_trigger"] = {
-              "title": "Đã Hủy Đăng Ký",
-              "message": (
-                  f"Đã hủy thành công ca học ngày {date_formatted} của"
-                  f" học viên <b>{row['hoc_vien']}</b>."
-              ),
-              "icon": "✅",
-          }
-          st.rerun()
+st.divider()
+
+# Khu vực kiểm tra & hủy lịch cá nhân
+st.subheader("🔍 Kiểm Tra & Hủy Lịch Đã Đăng Ký")
+with st.container():
+    ten_kiem_tra = st.text_input("Nhập họ và tên để tìm lịch:", placeholder="Tên học viên cần tìm...", key="input_check")
+    if st.button("Tra Cứu Lịch"):
+        if not ten_kiem_tra.strip():
+            st.warning("Vui lòng nhập tên để tìm kiếm.")
+        else:
+            tim_thay = False
+            for ca, ds in data["dang_ky"].items():
+                if ten_kiem_tra.strip() in ds:
+                    tim_thay = True
+                    st.info(f"Học viên **{ten_kiem_tra.strip()}** đang có lịch ở **{ca}**.")
+                    if st.button("Hủy đăng ký ca này (để đổi ca)"):
+                        data["dang_ky"][ca].remove(ten_kiem_tra.strip())
+                        luu_du_lieu(data)
+                        st.success("Đã hủy lịch thành công! Bạn có thể chọn lại ca mới ở trên.")
+                        st.rerun()
+                    break
+            if not tim_thay:
+                st.warning(f"Không tìm thấy dữ liệu đăng ký nào cho tên **{ten_kiem_tra.strip()}** trong tuần này.")
