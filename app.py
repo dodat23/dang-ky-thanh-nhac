@@ -106,9 +106,10 @@ ngay_thu_7 = data["ngay_thu_7"]
 
 # Tiêu đề trang
 st.markdown("<h1 style='text-align: center; color: #db2777;'>🎶 ĐĂNG KÝ HỌC THANH NHẠC</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #6b7280;'>✨ Luyện giọng thăng hoa cùng lớp học ✨</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #6b7280;'>✨ Luyện giọng thăng hoa cùng Ms Gemma ✨</p>", unsafe_allow_html=True)
 
-st.info(f"📅 **Lịch học Thứ 7 tuần này:** `{ngay_thu_7}` (Thời gian: **8:00 - 11:30**)\n\n*💡 Hệ thống tự động reset danh sách đăng ký vào Thứ Hai hàng tuần.*")
+# Đã bỏ dòng thông báo reset, chỉ giữ lại thông tin lịch học Thứ 7
+st.info(f"📅 **Lịch học Thứ 7 tuần này:** `{ngay_thu_7}` (Thời gian: **8:00 - 11:30**)")
 
 # Thống kê sĩ số tổng quan
 tong_so_hoc_vien = sum(len(ds) for ds in data["dang_ky"].values())
@@ -157,14 +158,12 @@ st.subheader("✍️ Đăng Ký Lịch Học")
 
 if tong_so_hoc_vien < 10:
     with st.container():
-        # Xóa sạch ô nhập tên bằng cách dùng key trong session_state nếu vừa submit xong
         if 'clear_input' in st.session_state and st.session_state['clear_input']:
             st.session_state['ten_input'] = ""
             st.session_state['clear_input'] = False
 
         ten_hoc_vien = st.text_input("Họ và tên học viên:", placeholder="Nhập tên của bạn...", key="ten_input")
         
-        # Tự động xác định ca học: Nếu Ca 1 chưa đủ 5 người thì ưu tiên Ca 1, ngược lại tự động đẩy sang Ca 2
         if len(data["dang_ky"]["Ca 1 (8:00 - 9:45)"]) < 5:
             ca_tu_dong = "Ca 1 (8:00 - 9:45)"
             st.info("💡 Hệ thống tự động xếp bạn vào **Ca 1 (8:00 - 9:45)**.")
@@ -177,7 +176,6 @@ if tong_so_hoc_vien < 10:
             if not ten_chuan_hoa:
                 st.error("Vui lòng nhập tên của bạn!")
             else:
-                # Kiểm tra xem học viên đã đăng ký chưa
                 da_dang_ky = False
                 ca_cu = ""
                 for ca, ds in data["dang_ky"].items():
@@ -214,7 +212,6 @@ with st.container():
     if st.button("Tra Cứu Lịch"):
         st.session_state['search_name'] = ten_kiem_tra.strip()
 
-# Xử lý kết quả tìm kiếm và hiển thị nút hủy trực tiếp
 if 'search_name' in st.session_state and st.session_state['search_name']:
     name_to_find = st.session_state['search_name']
     tim_thay = False
@@ -264,7 +261,6 @@ if tong_so_hoc_vien == 10:
         })
         st.dataframe(df_ca2, use_container_width=True, hide_index=True)
 
-    # Nút tải xuống file tổng hợp
     danh_sach_tong_hop = []
     for ca, ds_hv in data["dang_ky"].items():
         for hv in ds_hv:
