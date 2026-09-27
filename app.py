@@ -207,6 +207,9 @@ if tong_so_hoc_vien < 10:
         ten_hoc_vien = st.text_input("Nhập tên", key="ten_input", label_visibility="collapsed", autocomplete="off")
         
         cac_ca = list(data["dang_ky"].keys())
+        if len(data["dang_ky"][cac_ca[0]]) >= 5:
+            st.session_state["ca_dang_ky"] = cac_ca[1]
+
         ca_duoc_chon = st.selectbox(
             "Chọn ca học",
             options=cac_ca,
