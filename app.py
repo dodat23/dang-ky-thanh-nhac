@@ -95,52 +95,20 @@ st.markdown("""
     }
 
     /* Modal trung tâm màn hình */
-    @keyframes modalShow {
-        from {
-            opacity: 0;
-            transform: translate(-50%, -40%) scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-        }
-    }
-
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.45);
-        backdrop-filter: blur(5px);
-        z-index: 9998;
-    }
-
-    .custom-modal-box {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 90%;
-        max-width: 440px;
-        background: #ffffff;
-        padding: 30px;
+    div[data-testid="stDialog"] > div {
+        border: 2px solid #fbcfe8;
         border-radius: 24px;
         box-shadow: 0 25px 50px -12px rgba(190, 24, 93, 0.35);
-        border: 2px solid #fbcfe8;
-        z-index: 9999;
-        animation: modalShow 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         text-align: center;
     }
 
-    .custom-modal-box h3 {
+    div[data-testid="stDialog"] h3 {
         color: #be185d;
         margin-bottom: 12px;
         font-weight: 800;
     }
 
-    .custom-modal-box p {
+    div[data-testid="stDialog"] p {
         color: #4b5563;
         font-size: 16px;
         line-height: 1.5;
@@ -197,6 +165,16 @@ if 'modal_message' not in st.session_state:
 
 def show_modal(title, message):
     st.session_state['modal_message'] = {"title": title, "text": message}
+
+@st.dialog("Thông báo", width="small")
+def render_modal(m_data):
+    st.markdown(f"<h3>{m_data['title']}</h3><p>{m_data['text']}</p>", unsafe_allow_html=True)
+    if st.button("⬅️ Quay về màn hình chính", key="btn_dong_modal_chinh"):
+        st.session_state['modal_message'] = None
+        st.session_state.pop('search_name', None)
+        if m_data['title'] == "🎉 Hoàn Tất Đăng Ký":
+            st.session_state['completion_modal_dismissed_week'] = data["tuan"]
+        st.rerun()
 
 # Tiêu đề
 st.markdown("""
@@ -299,7 +277,8 @@ if tong_so_hoc_vien < 10:
                         show_modal("🎉 Đăng Ký Thành Công!", f"Chúc mừng giọng ca **{ten_chuan_hoa}** đã ghi danh tự động vào **{ca_tu_dong}**!")
                         st.rerun()
 else:
-    show_modal("🎉 Hoàn Tất Đăng Ký", "Lớp học đã hoàn tất đăng ký đủ 10/10 giọng ca! Sân khấu đã sẵn sàng.")
+    if st.session_state.get('completion_modal_dismissed_week') != data["tuan"]:
+        show_modal("🎉 Hoàn Tất Đăng Ký", "Lớp học đã hoàn tất đăng ký đủ 10/10 giọng ca! Sân khấu đã sẵn sàng.")
 
 
 # ================= PHẦN KIỂM TRA & HỦY LỊCH CÁ NHÂN =================
@@ -337,23 +316,9 @@ if 'search_name' in st.session_state and st.session_state['search_name']:
         show_modal("⚠️ Không Tìm Thấy", f"Không tìm thấy dữ liệu đăng ký cho tên **{name_to_find}** trong tuần này.")
 
 
-# ================= HIỂN THỊ MODAL TRUNG TÂM KÈM NÚT QUAY LẠI =================
+# ================= HIỂN THỊ MODAL THÔNG BÁO =================
 if st.session_state['modal_message']:
-    m_data = st.session_state['modal_message']
-    
-    st.markdown(f"""
-        <div class="modal-overlay"></div>
-        <div class="custom-modal-box">
-            <h3>{m_data['title']}</h3>
-            <p>{m_data['text']}</p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<div style='position: fixed; top: 56%; left: 50%; transform: translate(-50%, 0); z-index: 10000; width: 80%; max-width: 320px;'>", unsafe_allow_html=True)
-    if st.button("⬅️ Quay lại màn hình chính", key="btn_dong_modal_chinh"):
-        st.session_state['modal_message'] = None
-        st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
+    render_modal(st.session_state['modal_message'])
 
 
 # ================= CHỈ HIỆN SHEET KHI ĐỦ 10/10 HỌC VIÊN =================
