@@ -164,10 +164,10 @@ ngay_thu_7 = data["ngay_thu_7"]
 st.markdown("""
     <div class="music-header">
         <h1 style='color: #be185d; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 0;'>
-            🎶 PHÒNG TRÀ & LUYỆN THANH NHẠC 🎤
+            🎶 Đăng ký ca học thanh nhạc 🎤
         </h1>
         <p style='color: #6b7280; font-size: 17px; margin-top: 5px;'>
-            🎵 <i>Thắp sáng đam mê - Chạm đến âm sắc hoàn hảo cùng Ms Gemma</i> 🎵
+            🎵 <i>Luyện thanh thăng hoa cùng Ms Gemma</i> 🎵
         </p>
     </div>
 """, unsafe_allow_html=True)
