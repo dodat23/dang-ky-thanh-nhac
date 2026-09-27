@@ -10,67 +10,67 @@ st.set_page_config(
     layout="centered"
 )
 
-# CSS tùy chỉnh giao diện tối chuyên nghiệp, phong cách Studio âm nhạc
+# CSS tùy chỉnh giao diện Hồng - Trắng tinh tế, hiện đại
 st.markdown("""
     <style>
-    /* Toàn bộ nền trang */
+    /* Toàn bộ nền trang (Hồng nhạt pastel dịu mắt) */
     .stApp {
-        background-color: #0f172a;
-        color: #f8fafc;
+        background-color: #fff5f7;
+        color: #1f2937;
     }
     
     /* Tùy chỉnh ô nhập liệu và selectbox */
     .stTextInput > div > div > input {
-        background-color: #1e293b;
-        color: #f8fafc;
-        border: 1px solid #334155;
+        background-color: #ffffff;
+        color: #1f2937;
+        border: 1px solid #f472b6;
         border-radius: 10px;
     }
     .stSelectbox > div > div > div {
-        background-color: #1e293b;
-        color: #f8fafc;
-        border: 1px solid #334155;
+        background-color: #ffffff;
+        color: #1f2937;
+        border: 1px solid #f472b6;
         border-radius: 10px;
     }
     
-    /* Nút bấm chính */
+    /* Nút bấm chính (Hồng đậm gradient nổi bật) */
     div.stButton > button {
         border-radius: 10px;
         font-weight: bold;
-        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
         color: white;
         border: none;
         width: 100%;
         padding: 10px;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
         transition: all 0.3s ease;
     }
     div.stButton > button:hover {
-        background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
-        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+        background: linear-gradient(135deg, #db2777 0%, #e11d48 100%);
+        box-shadow: 0 6px 16px rgba(236, 72, 153, 0.5);
     }
 
-    /* Thẻ Card hiển thị thông tin ca học */
+    /* Thẻ Card hiển thị thông tin ca học (Màu trắng bo viền hồng nhẹ) */
     .card {
         padding: 22px;
         border-radius: 16px;
-        background: #1e293b;
-        border: 1px solid #334155;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        background: #ffffff;
+        border: 1px solid #fbcfe8;
+        box-shadow: 0 10px 15px -3px rgba(244, 114, 182, 0.15);
         margin-bottom: 20px;
     }
     
     /* Tiêu đề trong card */
     .card h4 {
-        color: #38bdf8;
+        color: #db2777;
         margin-bottom: 8px;
     }
 
     /* Thanh thông báo info */
     .stAlert {
-        background-color: #1e293b;
-        color: #e2e8f0;
-        border: 1px solid #334155;
+        background-color: #ffffff;
+        color: #1f2937;
+        border: 1px solid #fbcfe8;
         border-radius: 10px;
     }
     </style>
@@ -119,8 +119,8 @@ data = tai_du_lieu()
 ngay_thu_7 = data["ngay_thu_7"]
 
 # Tiêu đề trang
-st.markdown("<h1 style='text-align: center; color: #a855f7;'>🎶 ĐĂNG KÝ HỌC THANH NHẠC</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #94a3b8;'>✨ Luyện giọng thăng hoa cùng phòng thu lớp mình ✨</p>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #db2777;'>🎶 ĐĂNG KÝ HỌC THANH NHẠC</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #6b7280;'>✨ Luyện giọng thăng hoa cùng lớp học ✨</p>", unsafe_allow_html=True)
 
 st.info(f"📅 **Lịch học Thứ 7 tuần này:** `{ngay_thu_7}` (Thời gian: **8:00 - 11:30**)\n\n*💡 Hệ thống tự động reset danh sách đăng ký vào Thứ Hai hàng tuần.*")
 
@@ -131,7 +131,7 @@ st.progress(tong_so_hoc_vien / 10)
 
 st.write("")
 
-# Hiển thị 2 ca học dưới dạng 2 cột thẻ card tối màu
+# Hiển thị 2 ca học dưới dạng 2 cột thẻ card trắng viền hồng
 col1, col2 = st.columns(2)
 
 with col1:
@@ -139,8 +139,8 @@ with col1:
     st.markdown(f"""
         <div class="card">
             <h4>🌅 Ca 1 (8:00 - 9:45)</h4>
-            <p style="color: #94a3b8; font-size: 14px;">Trạng thái: <b style="color: #38bdf8;">{siso_1}/5</b> chỗ đã đặt</p>
-            <hr style="border-color: #334155; margin: 5px 0 10px 0;">
+            <p style="color: #4b5563; font-size: 14px;">Trạng thái: <b style="color: #db2777;">{siso_1}/5</b> chỗ đã đặt</p>
+            <hr style="border-color: #fbcfe8; margin: 5px 0 10px 0;">
     """, unsafe_allow_html=True)
     if siso_1 == 0:
         st.caption("Chưa có học viên đăng ký")
@@ -154,8 +154,8 @@ with col2:
     st.markdown(f"""
         <div class="card">
             <h4>☀️ Ca 2 (9:45 - 11:30)</h4>
-            <p style="color: #94a3b8; font-size: 14px;">Trạng thái: <b style="color: #38bdf8;">{siso_2}/5</b> chỗ đã đặt</p>
-            <hr style="border-color: #334155; margin: 5px 0 10px 0;">
+            <p style="color: #4b5563; font-size: 14px;">Trạng thái: <b style="color: #db2777;">{siso_2}/5</b> chỗ đã đặt</p>
+            <hr style="border-color: #fbcfe8; margin: 5px 0 10px 0;">
     """, unsafe_allow_html=True)
     if siso_2 == 0:
         st.caption("Chưa có học viên đăng ký")
