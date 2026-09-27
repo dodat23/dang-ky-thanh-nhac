@@ -33,7 +33,7 @@ st.markdown("""
         animation: floatNotes 4s ease-in-out infinite;
     }
 
-    /* Tối ưu Input gọn gàng tuyệt đối, không có chữ gợi ý dư thừa */
+    /* Tối ưu Input gọn gàng tuyệt đối */
     .stTextInput > div > div > input {
         background-color: #ffffff;
         color: #1f2937;
@@ -262,8 +262,8 @@ if tong_so_hoc_vien < 10:
             st.session_state['ten_input'] = ""
             st.session_state['clear_input'] = False
 
-        # Ô nhập tên hoàn toàn sạch sẽ, ẩn nhãn và không có gợi ý phụ
-        ten_hoc_vien = st.text_input("Nhập tên", key="ten_input", label_visibility="collapsed")
+        # Thêm autocomplete="off" để tắt hoàn toàn lịch sử gợi ý của trình duyệt
+        ten_hoc_vien = st.text_input("Nhập tên", key="ten_input", label_visibility="collapsed", autocomplete="off")
         
         # Tự động xếp: Ca 1 chưa đủ 5 người thì vào Ca 1, ngược lại tự động chuyển vào Ca 2
         if len(data["dang_ky"]["Ca 1 (8:00 - 9:45)"]) < 5:
@@ -310,8 +310,8 @@ with st.container():
         st.session_state['input_check'] = ""
         st.session_state['clear_check'] = False
 
-    # Ô tra cứu cũng được tối giản sạch sẽ
-    ten_kiem_tra = st.text_input("Tra cứu", key="input_check", label_visibility="collapsed")
+    # Tắt autocomplete cho ô tra cứu
+    ten_kiem_tra = st.text_input("Tra cứu", key="input_check", label_visibility="collapsed", autocomplete="off")
     
     if st.button("🎵 Tra Cứu Lịch Biểu"):
         st.session_state['search_name'] = ten_kiem_tra.strip()
