@@ -94,36 +94,6 @@ st.markdown("""
         font-weight: 800;
     }
 
-    /* Modal trung tâm màn hình */
-    div[data-testid="stDialog"] > div {
-        border: 2px solid #fbcfe8;
-        border-radius: 24px;
-        box-shadow: 0 25px 50px -12px rgba(190, 24, 93, 0.35);
-        text-align: center;
-    }
-
-    @keyframes notificationEnter {
-        from { opacity: 0; transform: translateY(12px) scale(0.97); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    div[data-testid="stDialog"] [data-testid="stVerticalBlock"] {
-        animation: notificationEnter 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    div[data-testid="stDialog"] h3 {
-        color: #be185d;
-        margin-bottom: 12px;
-        font-weight: 800;
-    }
-
-    div[data-testid="stDialog"] p {
-        color: #4b5563;
-        font-size: 16px;
-        line-height: 1.5;
-        margin-bottom: 24px;
-    }
-
     .stProgress > div > div > div > div {
         background: linear-gradient(90deg, #f472b6 0%, #be185d 100%);
         border-radius: 12px;
@@ -168,22 +138,6 @@ def luu_du_lieu(data):
 
 data = tai_du_lieu()
 ngay_thu_7 = data["ngay_thu_7"]
-
-if 'modal_message' not in st.session_state:
-    st.session_state['modal_message'] = None
-
-def show_modal(title, message):
-    st.session_state['modal_message'] = {"title": title, "text": message}
-
-@st.dialog("Thông báo", width="small")
-def render_modal(m_data):
-    st.markdown(f"<h3>{m_data['title']}</h3><p>{m_data['text']}</p>", unsafe_allow_html=True)
-    if st.button("⬅️ Quay về màn hình chính", key="btn_dong_modal_chinh"):
-        st.session_state['modal_message'] = None
-        st.session_state.pop('search_name', None)
-        if m_data['title'] == "🎉 Hoàn Tất Đăng Ký":
-            st.session_state['completion_modal_dismissed_week'] = data["tuan"]
-        st.rerun()
 
 # Tiêu đề
 st.markdown("""
@@ -241,7 +195,7 @@ with col2:
 
 # ================= PHẦN ĐĂNG KÝ LỊCH HỌC =================
 st.divider()
-st.subheader("✍️ Đăng Ký Sân Khấu Luyện Thanh")
+st.subheader("✍️ Đăng Ký Luyện Thanh")
 
 if tong_so_hoc_vien < 10:
     with st.container():
@@ -263,8 +217,7 @@ if tong_so_hoc_vien < 10:
         if st.button("🎶 Xác Nhận Đăng Ký Ca Học"):
             ten_chuan_hoa = ten_hoc_vien.strip()
             if not ten_chuan_hoa:
-                show_modal("⚠️ Thông Báo Lỗi", "Vui lòng nhập họ và tên của bạn trước khi đăng ký!")
-                st.rerun()
+                st.caption("Vui lòng nhập họ và tên của bạn trước khi đăng ký.")
             else:
                 da_dang_ky = False
                 ca_cu = ""
@@ -275,26 +228,20 @@ if tong_so_hoc_vien < 10:
                         break
                 
                 if da_dang_ky:
-                    show_modal("⚠️ Trùng Lịch Đăng Ký", f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi giọng ca chỉ được chọn 1 ca duy nhất.")
-                    st.rerun()
+                    st.caption(f"Bạn {ten_chuan_hoa} đã đăng ký ca {ca_cu} rồi. Mỗi người chỉ được chọn một ca.")
                 else:
                     if len(data["dang_ky"][ca_duoc_chon]) >= 5:
-                        show_modal("❌ Hết Chỗ Ca Học", f"Ca **{ca_duoc_chon}** đã đủ 5/5 giọng ca. Vui lòng chọn ca còn chỗ!")
-                        st.rerun()
+                        st.caption(f"Ca {ca_duoc_chon} đã đủ 5/5 học viên. Vui lòng chọn ca còn chỗ.")
                     else:
                         data["dang_ky"][ca_duoc_chon].append(ten_chuan_hoa)
                         luu_du_lieu(data)
                         st.session_state['clear_input'] = True
-                        show_modal("🎉 Đăng Ký Thành Công!", f"Chúc mừng giọng ca **{ten_chuan_hoa}** đã đăng ký vào **{ca_duoc_chon}**!")
                         st.rerun()
-else:
-    if st.session_state.get('completion_modal_dismissed_week') != data["tuan"]:
-        show_modal("🎉 Hoàn Tất Đăng Ký", "Lớp học đã hoàn tất đăng ký đủ 10/10 giọng ca! Sân khấu đã sẵn sàng.")
 
 
 # ================= PHẦN KIỂM TRA & HỦY LỊCH CÁ NHÂN =================
 st.divider()
-st.subheader("🔍 Tra Cứu & Đổi Lịch Biểu")
+st.subheader("🔍 Tra Cứu Ca Học")
 with st.container():
     if 'clear_check' in st.session_state and st.session_state['clear_check']:
         st.session_state['input_check'] = ""
@@ -303,7 +250,7 @@ with st.container():
     # Tắt autocomplete cho ô tra cứu
     ten_kiem_tra = st.text_input("Tra cứu", key="input_check", label_visibility="collapsed", autocomplete="off")
     
-    if st.button("🎵 Tra Cứu Lịch Biểu"):
+    if st.button("🎵 Tra Cứu Ca Học"):
         st.session_state['search_name'] = ten_kiem_tra.strip()
 
 if 'search_name' in st.session_state and st.session_state['search_name']:
@@ -312,31 +259,25 @@ if 'search_name' in st.session_state and st.session_state['search_name']:
     for ca, ds in data["dang_ky"].items():
         if name_to_find in ds:
             tim_thay = True
-            show_modal("🔎 Tìm Thấy Lịch Diễn", f"Giọng ca **{name_to_find}** hiện đang luyện tập ở **{ca}**.")
+            st.markdown(f"Giọng ca **{name_to_find}** hiện đang luyện tập ở **{ca}**.")
             
             if st.button(f"❌ Xác nhận HỦY lịch của {name_to_find}", key="btn_huy_lich_action"):
                 data["dang_ky"][ca].remove(name_to_find)
                 luu_du_lieu(data)
                 del st.session_state['search_name']
                 st.session_state['clear_check'] = True
-                show_modal("🗑️ Đã Hủy Lịch", f"Đã hủy lịch thành công cho giọng ca **{name_to_find}**!")
                 st.rerun()
             break
             
     if not tim_thay:
-        show_modal("⚠️ Không Tìm Thấy", f"Không tìm thấy dữ liệu đăng ký cho tên **{name_to_find}** trong tuần này.")
-
-
-# ================= HIỂN THỊ MODAL THÔNG BÁO =================
-if st.session_state['modal_message']:
-    render_modal(st.session_state['modal_message'])
+        st.caption(f"Không tìm thấy dữ liệu đăng ký cho tên {name_to_find} trong tuần này.")
 
 
 # ================= CHỈ HIỆN SHEET KHI ĐỦ 10/10 HỌC VIÊN =================
 if tong_so_hoc_vien == 10:
     st.divider()
     st.success("📊 **Bảng Sheet tổng hợp hòa ca chính thức được mở:**")
-    st.subheader("📋 Danh Sách Biểu Diễn Từng Ca")
+    st.subheader("📋 Danh Sách Học Từng Ca")
     
     sheet_col1, sheet_col2 = st.columns(2)
 
