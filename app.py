@@ -67,10 +67,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 DATA_FILE = "data_dang_ky.json"
-CA_HOC_MAC_DINH = {
-    "Ca 1 (8:00 - 9:45)": 5,
-    "Ca 2 (9:45 - 11:30)": 5
-}
 
 def lay_ngay_thu_7_gan_nhat():
     ngay_hien_tai = datetime.now()
@@ -155,53 +151,70 @@ with col2:
     st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ================= PHẦN ĐĂNG KÝ LỊCH HỌC =================
+# ================= PHẦN ĐĂNG KÝ LỊCH HỌC (TỰ ĐỘNG CHUYỂN CA KHI CA 1 ĐẦY) =================
 st.divider()
 st.subheader("✍️ Đăng Ký Lịch Học")
-with st.container():
-    ten_hoc_vien = st.text_input("Họ và tên học viên:", placeholder="Nhập tên của bạn...")
-    
-    ca_chon = st.selectbox(
-        "Chọn ca học mong muốn:", 
-        list(CA_HOC_MAC_DINH.keys()),
-        format_func=lambda x: f"{x} (Còn {5 - len(data['dang_ky'][x])} chỗ)"
-    )
 
-    if st.button("Xác Nhận Đăng Ký"):
-        ten_chuan_hoa = ten_hoc_vien.strip()
-        if not ten_chuan_hoa:
-            st.error("Vui lòng nhập tên của bạn!")
+if tong_so_hoc_vien < 10:
+    with st.container():
+        # Xóa sạch ô nhập tên bằng cách dùng key trong session_state nếu vừa submit xong
+        if 'clear_input' in st.session_state and st.session_state['clear_input']:
+            st.session_state['ten_input'] = ""
+            st.session_state['clear_input'] = False
+
+        ten_hoc_vien = st.text_input("Họ và tên học viên:", placeholder="Nhập tên của bạn...", key="ten_input")
+        
+        # Tự động xác định ca học: Nếu Ca 1 chưa đủ 5 người thì ưu tiên Ca 1, ngược lại tự động đẩy sang Ca 2
+        if len(data["dang_ky"]["Ca 1 (8:00 - 9:45)"]) < 5:
+            ca_tu_dong = "Ca 1 (8:00 - 9:45)"
+            st.info("💡 Hệ thống tự động xếp bạn vào **Ca 1 (8:00 - 9:45)**.")
         else:
-            da_dang_ky = False
-            ca_cu = ""
-            for ca, ds in data["dang_ky"].items():
-                if ten_chuan_hoa in ds:
-                    da_dang_ky = True
-                    ca_cu = ca
-                    break
-            
-            if da_dang_ky:
-                st.warning(f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi người chỉ được chọn 1 ca.")
+            ca_tu_dong = "Ca 2 (9:45 - 11:30)"
+            st.info("💡 Ca 1 đã đủ 5 người. Hệ thống tự động xếp bạn vào **Ca 2 (9:45 - 11:30)**.")
+
+        if st.button("Xác Nhận Đăng Ký"):
+            ten_chuan_hoa = ten_hoc_vien.strip()
+            if not ten_chuan_hoa:
+                st.error("Vui lòng nhập tên của bạn!")
             else:
-                if len(data["dang_ky"][ca_chon]) >= 5:
-                    st.error(f"Ca **{ca_chon}** đã đủ 5/5 học viên. Vui lòng chọn ca còn lại!")
+                # Kiểm tra xem học viên đã đăng ký chưa
+                da_dang_ky = False
+                ca_cu = ""
+                for ca, ds in data["dang_ky"].items():
+                    if ten_chuan_hoa in ds:
+                        da_dang_ky = True
+                        ca_cu = ca
+                        break
+                
+                if da_dang_ky:
+                    st.warning(f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi người chỉ được chọn 1 ca.")
                 else:
-                    data["dang_ky"][ca_chon].append(ten_chuan_hoa)
-                    luu_du_lieu(data)
-                    st.success(f"🎉 Chúc mừng **{ten_chuan_hoa}** đã đăng ký thành công ca **{ca_chon}**!")
-                    st.rerun()
+                    if len(data["dang_ky"][ca_tu_dong]) >= 5:
+                        st.error(f"Ca **{ca_tu_dong}** đã đủ 5/5 học viên!")
+                    else:
+                        data["dang_ky"][ca_tu_dong].append(ten_chuan_hoa)
+                        luu_du_lieu(data)
+                        st.session_state['clear_input'] = True
+                        st.success(f"🎉 Chúc mừng **{ten_chuan_hoa}** đã đăng ký thành công **{ca_tu_dong}**!")
+                        st.rerun()
+else:
+    st.success("🎉 **Lớp học đã hoàn tất đăng ký đủ 10/10 học viên!** Form đăng ký đã tạm đóng.")
 
 
 # ================= PHẦN KIỂM TRA & HỦY LỊCH CÁ NHÂN =================
 st.divider()
 st.subheader("🔍 Kiểm Tra & Hủy Lịch Đã Đăng Ký")
 with st.container():
+    if 'clear_check' in st.session_state and st.session_state['clear_check']:
+        st.session_state['input_check'] = ""
+        st.session_state['clear_check'] = False
+
     ten_kiem_tra = st.text_input("Nhập họ và tên để tìm lịch:", placeholder="Tên học viên cần tìm...", key="input_check")
     
     if st.button("Tra Cứu Lịch"):
         st.session_state['search_name'] = ten_kiem_tra.strip()
 
-# Xử lý kết quả tìm kiếm và hiển thị nút hủy trực tiếp ổn định
+# Xử lý kết quả tìm kiếm và hiển thị nút hủy trực tiếp
 if 'search_name' in st.session_state and st.session_state['search_name']:
     name_to_find = st.session_state['search_name']
     tim_thay = False
@@ -210,12 +223,12 @@ if 'search_name' in st.session_state and st.session_state['search_name']:
             tim_thay = True
             st.info(f"Học viên **{name_to_find}** hiện đang đăng ký ở **{ca}**.")
             
-            # Nút hủy lịch trực tiếp gọn gàng
             if st.button(f"❌ Xác nhận HỦY lịch của {name_to_find}", key="btn_huy_lich_action"):
                 data["dang_ky"][ca].remove(name_to_find)
                 luu_du_lieu(data)
                 del st.session_state['search_name']
-                st.success("Đã hủy lịch thành công! Bạn có thể chọn lại ca mới.")
+                st.session_state['clear_check'] = True
+                st.success("Đã hủy lịch thành công! Ô nhập tên đã được làm sạch.")
                 st.rerun()
             break
             
@@ -226,13 +239,13 @@ if 'search_name' in st.session_state and st.session_state['search_name']:
 # ================= CHỈ HIỆN SHEET KHI ĐỦ 10/10 HỌC VIÊN =================
 if tong_so_hoc_vien == 10:
     st.divider()
-    st.success("🎉 **Lớp học đã đủ 10/10 học viên đăng ký! Bảng Sheet tổng hợp chính thức được mở:**")
-    st.subheader("📊 Bảng Sheet Tổng Hợp Chi Tiết Từng Ca")
+    st.success("📊 **Bảng Sheet tổng hợp chính thức được mở:**")
+    st.subheader("📋 Chi Tiết Danh Sách Từng Ca")
     
     sheet_col1, sheet_col2 = st.columns(2)
 
     with sheet_col1:
-        st.markdown("#### **📋 Sheet Ca 1 (8:00 - 9:45)**")
+        st.markdown("#### **Ca 1 (8:00 - 9:45)**")
         ds_ca1 = data["dang_ky"]["Ca 1 (8:00 - 9:45)"]
         df_ca1 = pd.DataFrame({
             "STT": range(1, len(ds_ca1) + 1),
@@ -242,7 +255,7 @@ if tong_so_hoc_vien == 10:
         st.dataframe(df_ca1, use_container_width=True, hide_index=True)
 
     with sheet_col2:
-        st.markdown("#### **📋 Sheet Ca 2 (9:45 - 11:30)**")
+        st.markdown("#### **Ca 2 (9:45 - 11:30)**")
         ds_ca2 = data["dang_ky"]["Ca 2 (9:45 - 11:30)"]
         df_ca2 = pd.DataFrame({
             "STT": range(1, len(ds_ca2) + 1),
