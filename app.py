@@ -102,6 +102,15 @@ st.markdown("""
         text-align: center;
     }
 
+    @keyframes notificationEnter {
+        from { opacity: 0; transform: translateY(12px) scale(0.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    div[data-testid="stDialog"] [data-testid="stVerticalBlock"] {
+        animation: notificationEnter 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
     div[data-testid="stDialog"] h3 {
         color: #be185d;
         margin-bottom: 12px;
@@ -243,11 +252,13 @@ if tong_so_hoc_vien < 10:
         # Thêm autocomplete="off" để tắt hoàn toàn lịch sử gợi ý của trình duyệt
         ten_hoc_vien = st.text_input("Nhập tên", key="ten_input", label_visibility="collapsed", autocomplete="off")
         
-        # Tự động xếp: Ca 1 chưa đủ 5 người thì vào Ca 1, ngược lại tự động chuyển vào Ca 2
-        if len(data["dang_ky"]["Ca 1 (8:00 - 9:45)"]) < 5:
-            ca_tu_dong = "Ca 1 (8:00 - 9:45)"
-        else:
-            ca_tu_dong = "Ca 2 (9:45 - 11:30)"
+        cac_ca = list(data["dang_ky"].keys())
+        ca_duoc_chon = st.selectbox(
+            "Chọn ca học",
+            options=cac_ca,
+            format_func=lambda ca: f"{ca} - {len(data['dang_ky'][ca])}/5 học viên",
+            key="ca_dang_ky"
+        )
 
         if st.button("🎶 Xác Nhận Đăng Ký Ca Học"):
             ten_chuan_hoa = ten_hoc_vien.strip()
@@ -267,14 +278,14 @@ if tong_so_hoc_vien < 10:
                     show_modal("⚠️ Trùng Lịch Đăng Ký", f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi giọng ca chỉ được chọn 1 ca duy nhất.")
                     st.rerun()
                 else:
-                    if len(data["dang_ky"][ca_tu_dong]) >= 5:
-                        show_modal("❌ Hết Chỗ Ca Học", f"Ca **{ca_tu_dong}** đã đủ 5/5 giọng ca!")
+                    if len(data["dang_ky"][ca_duoc_chon]) >= 5:
+                        show_modal("❌ Hết Chỗ Ca Học", f"Ca **{ca_duoc_chon}** đã đủ 5/5 giọng ca. Vui lòng chọn ca còn chỗ!")
                         st.rerun()
                     else:
-                        data["dang_ky"][ca_tu_dong].append(ten_chuan_hoa)
+                        data["dang_ky"][ca_duoc_chon].append(ten_chuan_hoa)
                         luu_du_lieu(data)
                         st.session_state['clear_input'] = True
-                        show_modal("🎉 Đăng Ký Thành Công!", f"Chúc mừng giọng ca **{ten_chuan_hoa}** đã ghi danh tự động vào **{ca_tu_dong}**!")
+                        show_modal("🎉 Đăng Ký Thành Công!", f"Chúc mừng giọng ca **{ten_chuan_hoa}** đã đăng ký vào **{ca_duoc_chon}**!")
                         st.rerun()
 else:
     if st.session_state.get('completion_modal_dismissed_week') != data["tuan"]:
