@@ -6,61 +6,93 @@ from datetime import datetime, timedelta
 
 # Cấu hình trang Streamlit
 st.set_page_config(
-    page_title="Hệ Thống Đăng Ký Thanh Nhạc",
+    page_title="Hệ Thống Đăng Ký Thanh Nhạc Chuyên Nghiệp",
     page_icon="🎶",
     layout="centered"
 )
 
-# CSS tùy chỉnh giao diện Hồng - Trắng tinh tế, thanh lịch
+# CSS nâng cấp giao diện chuyên nghiệp, hiệu ứng chuyển động mượt mà
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
     .stApp {
-        background-color: #fff5f7;
+        background: linear-gradient(135deg, #fff0f3 0%, #fff5f7 50%, #fdf2f8 100%);
+        font-family: 'Plus Jakarta Sans', sans-serif;
         color: #1f2937;
     }
+
+    /* Hiệu ứng mượt mà cho các Input và Selectbox */
     .stTextInput > div > div > input {
         background-color: #ffffff;
         color: #1f2937;
-        border: 1px solid #f472b6;
-        border-radius: 10px;
+        border: 1.5px solid #fbcfe8;
+        border-radius: 12px;
+        padding: 10px 14px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(244, 114, 182, 0.05);
     }
-    .stSelectbox > div > div > div {
-        background-color: #ffffff;
-        color: #1f2937;
-        border: 1px solid #f472b6;
-        border-radius: 10px;
+    .stTextInput > div > div > input:focus {
+        border-color: #ec4899;
+        box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.15);
     }
+
+    /* Hiệu ứng nút bấm chuyên nghiệp, bóng đổ và chuyển động trượt */
     div.stButton > button {
-        border-radius: 10px;
-        font-weight: bold;
-        background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+        border-radius: 12px;
+        font-weight: 600;
+        background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
         color: white;
         border: none;
         width: 100%;
-        padding: 10px;
-        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
-        transition: all 0.3s ease;
+        padding: 11px 20px;
+        box-shadow: 0 6px 15px rgba(236, 72, 153, 0.35);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        letter-spacing: 0.3px;
     }
     div.stButton > button:hover {
-        background: linear-gradient(135deg, #db2777 0%, #e11d48 100%);
-        box-shadow: 0 6px 16px rgba(236, 72, 153, 0.5);
+        transform: translateY(-2px);
+        background: linear-gradient(135deg, #db2777 0%, #be185d 100%);
+        box-shadow: 0 10px 20px rgba(236, 72, 153, 0.5);
     }
+    div.stButton > button:active {
+        transform: translateY(1px);
+    }
+
+    /* Thẻ Card Ca học với hiệu ứng nổi và hover phóng to nhẹ mượt mà */
     .card {
-        padding: 22px;
-        border-radius: 16px;
-        background: #ffffff;
-        border: 1px solid #fbcfe8;
-        box-shadow: 0 10px 15px -3px rgba(244, 114, 182, 0.15);
+        padding: 24px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(251, 207, 232, 0.8);
+        box-shadow: 0 10px 25px -5px rgba(244, 114, 182, 0.12), 0 8px 10px -6px rgba(244, 114, 182, 0.08);
         margin-bottom: 20px;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px -5px rgba(244, 114, 182, 0.22);
+        border-color: #f472b6;
     }
     .card h4 {
         color: #db2777;
         margin-bottom: 8px;
+        font-weight: 700;
     }
+
+    /* Khung thông báo và alert tinh tế */
     .stAlert {
-        background-color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.9);
         color: #1f2937;
         border: 1px solid #fbcfe8;
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(244, 114, 182, 0.08);
+    }
+
+    /* Tùy chỉnh thanh tiến trình (progress bar) */
+    .stProgress > div > div > div > div {
+        background: linear-gradient(90deg, #f472b6 0%, #db2777 100%);
         border-radius: 10px;
     }
     </style>
@@ -104,11 +136,10 @@ def luu_du_lieu(data):
 data = tai_du_lieu()
 ngay_thu_7 = data["ngay_thu_7"]
 
-# Tiêu đề trang
-st.markdown("<h1 style='text-align: center; color: #db2777;'>🎶 ĐĂNG KÝ HỌC THANH NHẠC</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #6b7280;'>✨ Luyện giọng thăng hoa cùng Ms Gemma ✨</p>", unsafe_allow_html=True)
+# Tiêu đề trang đẳng cấp hơn
+st.markdown("<h1 style='text-align: center; color: #db2777; font-weight: 800; letter-spacing: -0.5px;'>🎶 HỆ THỐNG ĐĂNG KÝ THANH NHẠC</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #6b7280; font-size: 16px; margin-bottom: 25px;'>✨ Luyện giọng thăng hoa cùng Ms Gemma ✨</p>", unsafe_allow_html=True)
 
-# Đã bỏ dòng thông báo reset, chỉ giữ lại thông tin lịch học Thứ 7
 st.info(f"📅 **Lịch học Thứ 7 tuần này:** `{ngay_thu_7}` (Thời gian: **8:00 - 11:30**)")
 
 # Thống kê sĩ số tổng quan
@@ -118,7 +149,7 @@ st.progress(tong_so_hoc_vien / 10)
 
 st.write("")
 
-# Hiển thị 2 ca học dưới dạng 2 cột thẻ card trắng viền hồng
+# Hiển thị 2 ca học dưới dạng 2 cột thẻ card hiệu ứng mượt mà
 col1, col2 = st.columns(2)
 
 with col1:
@@ -127,13 +158,13 @@ with col1:
         <div class="card">
             <h4>🌅 Ca 1 (8:00 - 9:45)</h4>
             <p style="color: #4b5563; font-size: 14px;">Trạng thái: <b style="color: #db2777;">{siso_1}/5</b> chỗ đã đặt</p>
-            <hr style="border-color: #fbcfe8; margin: 5px 0 10px 0;">
+            <hr style="border-color: #fbcfe8; margin: 8px 0 12px 0;">
     """, unsafe_allow_html=True)
     if siso_1 == 0:
         st.caption("Chưa có học viên đăng ký")
     else:
         for idx, hv in enumerate(data["dang_ky"]["Ca 1 (8:00 - 9:45)"], 1):
-            st.write(f"{idx}. {hv}")
+            st.write(f"**{idx}.** {hv}")
     st.markdown("</div>", unsafe_allow_html=True)
 
 with col2:
@@ -142,17 +173,17 @@ with col2:
         <div class="card">
             <h4>☀️ Ca 2 (9:45 - 11:30)</h4>
             <p style="color: #4b5563; font-size: 14px;">Trạng thái: <b style="color: #db2777;">{siso_2}/5</b> chỗ đã đặt</p>
-            <hr style="border-color: #fbcfe8; margin: 5px 0 10px 0;">
+            <hr style="border-color: #fbcfe8; margin: 8px 0 12px 0;">
     """, unsafe_allow_html=True)
     if siso_2 == 0:
         st.caption("Chưa có học viên đăng ký")
     else:
         for idx, hv in enumerate(data["dang_ky"]["Ca 2 (9:45 - 11:30)"], 1):
-            st.write(f"{idx}. {hv}")
+            st.write(f"**{idx}.** {hv}")
     st.markdown("</div>", unsafe_allow_html=True)
 
 
-# ================= PHẦN ĐĂNG KÝ LỊCH HỌC (TỰ ĐỘNG CHUYỂN CA KHI CA 1 ĐẦY) =================
+# ================= PHẦN ĐĂNG KÝ LỊCH HỌC =================
 st.divider()
 st.subheader("✍️ Đăng Ký Lịch Học")
 
