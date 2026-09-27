@@ -11,7 +11,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# CSS giao diện phong cách Âm Nhạc, Responsive & Hiệu ứng Modal thông báo ở giữa màn hình mượt mà
+# CSS giao diện phong cách Âm Nhạc, Responsive & Hiệu ứng Modal trung tâm mượt mà
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -34,7 +34,7 @@ st.markdown("""
         animation: floatNotes 4s ease-in-out infinite;
     }
 
-    /* Tối ưu Input */
+    /* Tối ưu Input gọn gàng, không có text hướng dẫn rườm rà */
     .stTextInput > div > div > input {
         background-color: #ffffff;
         color: #1f2937;
@@ -127,7 +127,7 @@ st.markdown("""
         left: 50%;
         transform: translate(-50%, -50%);
         width: 90%;
-        max-width: 480px;
+        max-width: 440px;
         background: #ffffff;
         padding: 30px;
         border-radius: 24px;
@@ -148,7 +148,7 @@ st.markdown("""
         color: #4b5563;
         font-size: 16px;
         line-height: 1.5;
-        margin-bottom: 20px;
+        margin-bottom: 24px;
     }
 
     /* Thanh tiến trình âm nhạc */
@@ -210,13 +210,9 @@ ngay_thu_7 = data["ngay_thu_7"]
 # Khởi tạo session state lưu trạng thái modal
 if 'modal_message' not in st.session_state:
     st.session_state['modal_message'] = None
-if 'modal_type' not in st.session_state:
-    st.session_state['modal_type'] = "success"
 
-# Hàm hiển thị modal trung tâm mượt mà
-def show_modal(title, message, m_type="success"):
+def show_modal(title, message):
     st.session_state['modal_message'] = {"title": title, "text": message}
-    st.session_state['modal_type'] = m_type
 
 # Tiêu đề mang âm hưởng âm nhạc
 st.markdown("""
@@ -283,19 +279,18 @@ if tong_so_hoc_vien < 10:
             st.session_state['ten_input'] = ""
             st.session_state['clear_input'] = False
 
-        ten_hoc_vien = st.text_input("Họ và tên học viên:", placeholder="Nhập nghệ danh hoặc tên của bạn...", key="ten_input")
+        ten_hoc_vien = st.text_input("Họ và tên học viên:", placeholder="Nhập tên của bạn...", key="ten_input", label_visibility="collapsed")
         
+        # Xác định ca tự động sắp xếp ngầm
         if len(data["dang_ky"]["Ca 1 (8:00 - 9:45)"]) < 5:
             ca_tu_dong = "Ca 1 (8:00 - 9:45)"
-            st.info("💡 Hệ thống tự động xếp bạn vào **Ca 1 (8:00 - 9:45)**.")
         else:
             ca_tu_dong = "Ca 2 (9:45 - 11:30)"
-            st.info("💡 Ca 1 đã đủ 5 giọng ca. Hệ thống tự động xếp bạn vào **Ca 2 (9:45 - 11:30)**.")
 
         if st.button("🎶 Xác Nhận Đăng Ký Ca Học"):
             ten_chuan_hoa = ten_hoc_vien.strip()
             if not ten_chuan_hoa:
-                show_modal("⚠️ Thông Báo Lỗi", "Vui lòng nhập họ và tên của bạn trước khi đăng ký!", "error")
+                show_modal("⚠️ Thông Báo Lỗi", "Vui lòng nhập họ và tên của bạn trước khi đăng ký!")
                 st.rerun()
             else:
                 da_dang_ky = False
@@ -307,20 +302,20 @@ if tong_so_hoc_vien < 10:
                         break
                 
                 if da_dang_ky:
-                    show_modal("⚠️ Trùng Lịch Đăng Ký", f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi giọng ca chỉ được chọn 1 ca duy nhất.", "warning")
+                    show_modal("⚠️ Trùng Lịch Đăng Ký", f"Bạn **{ten_chuan_hoa}** đã đăng ký ca **{ca_cu}** rồi! Mỗi giọng ca chỉ được chọn 1 ca duy nhất.")
                     st.rerun()
                 else:
                     if len(data["dang_ky"][ca_tu_dong]) >= 5:
-                        show_modal("❌ Hết Chỗ Ca Học", f"Ca **{ca_tu_dong}** đã đủ 5/5 giọng ca!", "error")
+                        show_modal("❌ Hết Chỗ Ca Học", f"Ca **{ca_tu_dong}** đã đủ 5/5 giọng ca!")
                         st.rerun()
                     else:
                         data["dang_ky"][ca_tu_dong].append(ten_chuan_hoa)
                         luu_du_lieu(data)
                         st.session_state['clear_input'] = True
-                        show_modal("🎉 Đăng Ký Thành Công!", f"Chúc mừng giọng ca **{ten_chuan_hoa}** đã ghi danh thành công vào **{ca_tu_dong}**!", "success")
+                        show_modal("🎉 Đăng Ký Thành Công!", f"Chúc mừng giọng ca **{ten_chuan_hoa}** đã ghi danh thành công vào **{ca_tu_dong}**!")
                         st.rerun()
 else:
-    show_modal("🎉 Hoàn Tất Đăng Ký", "Lớp học đã hoàn tất đăng ký đủ 10/10 giọng ca! Sân khấu đã sẵn sàng.", "success")
+    show_modal("🎉 Hoàn Tất Đăng Ký", "Lớp học đã hoàn tất đăng ký đủ 10/10 giọng ca! Sân khấu đã sẵn sàng.")
 
 
 # ================= PHẦN KIỂM TRA & HỦY LỊCH CÁ NHÂN =================
@@ -331,7 +326,7 @@ with st.container():
         st.session_state['input_check'] = ""
         st.session_state['clear_check'] = False
 
-    ten_kiem_tra = st.text_input("Nhập tên để tìm lịch diễn:", placeholder="Tên học viên cần tìm...", key="input_check")
+    ten_kiem_tra = st.text_input("Nhập tên để tìm lịch diễn:", placeholder="Nhập tên học viên cần tìm...", key="input_check", label_visibility="collapsed")
     
     if st.button("🎵 Tra Cứu Lịch Biểu"):
         st.session_state['search_name'] = ten_kiem_tra.strip()
@@ -342,19 +337,19 @@ if 'search_name' in st.session_state and st.session_state['search_name']:
     for ca, ds in data["dang_ky"].items():
         if name_to_find in ds:
             tim_thay = True
-            show_modal("🔎 Tìm Thấy Lịch Diễn", f"Giọng ca **{name_to_find}** hiện đang luyện tập ở **{ca}**.", "success")
+            show_modal("🔎 Tìm Thấy Lịch Diễn", f"Giọng ca **{name_to_find}** hiện đang luyện tập ở **{ca}**.")
             
             if st.button(f"❌ Xác nhận HỦY lịch của {name_to_find}", key="btn_huy_lich_action"):
                 data["dang_ky"][ca].remove(name_to_find)
                 luu_du_lieu(data)
                 del st.session_state['search_name']
                 st.session_state['clear_check'] = True
-                show_modal("🗑️ Đã Hủy Lịch", f"Đã hủy lịch thành công cho giọng ca **{name_to_find}**!", "success")
+                show_modal("🗑️ Đã Hủy Lịch", f"Đã hủy lịch thành công cho giọng ca **{name_to_find}**!")
                 st.rerun()
             break
             
     if not tim_thay:
-        show_modal("⚠️ Không Tìm Thấy", f"Không tìm thấy dữ liệu đăng ký cho tên **{name_to_find}** trong tuần này.", "warning")
+        show_modal("⚠️ Không Tìm Thấy", f"Không tìm thấy dữ liệu đăng ký cho tên **{name_to_find}** trong tuần này.")
 
 
 # ================= HIỂN THỊ MODAL TRUNG TÂM NẾU CÓ THÔNG BÁO =================
@@ -369,10 +364,10 @@ if st.session_state['modal_message']:
         </div>
     """, unsafe_allow_html=True)
     
-    # Nút bấm đóng modal nằm gọn gàng bên dưới
+    # Nút bấm quay lại màn hình chính nằm gọn ngay trong khung modal
     col_m1, col_m2, col_m3 = st.columns([1, 2, 1])
     with col_m2:
-        if st.button("Đã hiểu / Đóng"):
+        if st.button("⬅️ Quay lại màn hình chính"):
             st.session_state['modal_message'] = None
             st.rerun()
 
